@@ -82,7 +82,7 @@ get_current_sp { out "ADR \$1"; out "RA"; in "%d"; }
 set_ramp_end { out "ADR \$1"; out "WAR %06d"; }
 
 # Read ramp end value
-get_ramp_end { out "ADR \$1"; out "RAR"; in "RAR %d"; }
+get_ramp_end { out "ADR \$1"; out "RAR"; in "%d"; }
 
 ################################################################################
 # Ramp Speed Control
@@ -92,48 +92,48 @@ get_ramp_end { out "ADR \$1"; out "RAR"; in "RAR %d"; }
 set_ramp_speed { out "ADR \$1"; out "WR %03d"; }
 
 # Read ramp speed
-get_ramp_speed { out "ADR \$1"; out "RR"; in "RR %d"; }
+get_ramp_speed { out "ADR \$1"; out "RR"; in "%d"; }
 
 ################################################################################
 # ADC Channel Readings
 ################################################################################
 
 # Read output current (Channel 0) - returns (I/In)*100
-get_output_current { out "ADR \$1"; out "AD 0"; in "0 %d"; }
+get_output_current { out "ADR \$1"; out "AD 0"; in "%d"; }
 
 # Read Tesla field (Channel 1) - returns T*100
-get_tesla { out "ADR \$1"; out "AD 1"; in "1 %d"; }
+get_tesla { out "ADR \$1"; out "AD 1"; in "%d"; }
 
 # Read output voltage (Channel 2) - returns (V/Vn)*100
-get_output_voltage { out "ADR \$1"; out "AD 2"; in "2 %d"; }
+get_output_voltage { out "ADR \$1"; out "AD 2"; in "%d"; }
 
 # Read +15V supply (Channel 3) - returns V*10
-get_p15v { out "ADR \$1"; out "AD 3"; in "3 %d"; }
+get_p15v { out "ADR \$1"; out "AD 3"; in "%d"; }
 
 # Read -15V supply (Channel 4) - returns V*10
-get_m15v { out "ADR \$1"; out "AD 4"; in "4 %d"; }
+get_m15v { out "ADR \$1"; out "AD 4"; in "%d"; }
 
 # Read +5V supply (Channel 5) - returns V*10
-get_p5v { out "ADR \$1"; out "AD 5"; in "5 %d"; }
+get_p5v { out "ADR \$1"; out "AD 5"; in "%d"; }
 
 # Read delta temperature (Channel 6) - returns Deg.C*10 with sign
-get_temp_delta { out "ADR \$1"; out "AD 6"; in "6 %d"; }
+get_temp_delta { out "ADR \$1"; out "AD 6"; in "%d"; }
 
 # Read transistor bank Vce (Channel 7) - returns V
-get_vce { out "ADR \$1"; out "AD 7"; in "7 %d"; }
+get_vce { out "ADR \$1"; out "AD 7"; in "%d"; }
 
 # Read optional high-res current (Channel 8) - returns (I/In)*100000 if equipped
-get_hires_current { out "ADR \$1"; out "AD 8"; in "8 %d"; }
+get_hires_current { out "ADR \$1"; out "AD 8"; in "%d"; }
 
 # Read aux current (Channel 9) - returns (I/In)*120
-get_aux_current { out "ADR \$1"; out "AD 9"; in "9 %d"; }
+get_aux_current { out "ADR \$1"; out "AD 9"; in "%d"; }
 
 ################################################################################
 # Polarity Control
 ################################################################################
 
 # Read polarity status
-get_polarity { out "ADR \$1"; out "PO"; in "PO %c"; }
+get_polarity { out "ADR \$1"; out "PO"; in "%c"; }
 
 # Set normal polarity
 set_pol_normal { out "ADR \$1"; out "PO+"; }
@@ -178,8 +178,10 @@ set_baud { out "ADR \$1"; out "BAUD %d"; }
 # Read unit information (serial number, type)
 get_info { out "ADR \$1"; out "PRINT"; in "%80c"; }
 
-# Read firmware version information  
-get_version { out "ADR \$1"; out "VER"; in "%80c"; }
+# Read firmware version information
+# Reply starts with a blank line (bare CR) before the actual text line,
+# so the first "in" consumes and discards it.
+get_version { out "ADR \$1"; out "VER"; in ""; in "%80c"; }
 
 ################################################################################
 # Binary Quick Read Commands (for high-speed monitoring)
@@ -235,9 +237,9 @@ safe_shutdown {
 read_all_params {
     out "ADR \$1";               # Address the power supply
     out "RA"; in "%d";           # Current setpoint
-    out "AD 0"; in "0 %d";       # Output current
-    out "AD 2"; in "2 %d";       # Output voltage  
-    out "PO"; in "PO %c";        # Polarity
+    out "AD 0"; in "%d";         # Output current
+    out "AD 2"; in "%d";         # Output voltage
+    out "PO"; in "%c";           # Polarity
     out "S1"; in "%24c";         # Status
     out "CMD"; in "%3c";         # Control mode
 }

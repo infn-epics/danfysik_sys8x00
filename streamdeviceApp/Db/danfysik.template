@@ -17,13 +17,13 @@
 # Device Information
 ################################################################################
 
-record(stringin, "$(DEVICE):INFO") 
+record(stringin, "$(DEVICE):INFO")
 {
     field(DESC, "Power Supply Information")
     field(DTYP, "stream")
     field(INP,  "@danfysik.proto get_info($(ADDR)) $(PORT)")
-    field(SCAN, "$(SCAN_SLOW=10 second)")
-    field(PINI, "YES")
+    # PRINT is not implemented on this SYS8800 firmware ("?<BEL> COMMAND ERROR"),
+    # so this record is left Passive/no-PINI instead of erroring on every boot/scan.
 }
 
 record(stringin, "$(DEVICE):VERSION") 
@@ -44,8 +44,8 @@ record(longin, "$(DEVICE):ADDR_RB")
     field(DESC, "MPS Address Readback")
     field(DTYP, "stream")
     field(INP,  "@danfysik.proto get_address() $(PORT)")
-    field(SCAN, "$(SCAN_SLOW=10 second)")
-    field(PINI, "YES")
+    # Bare "ADR" read is not implemented on this SYS8800 firmware
+    # ("?<BEL> DATA PARM ERROR"), so left Passive/no-PINI.
 }
 
 record(longout, "$(DEVICE):ADDR_SP")
