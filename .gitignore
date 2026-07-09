@@ -1,0 +1,7 @@
+O.Common/
+O.linux-x86_64/
+/bin/
+/lib/
+/dbd/
+/db/
+.DS_Store
