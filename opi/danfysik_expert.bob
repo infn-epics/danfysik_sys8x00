@@ -6,7 +6,7 @@
     <DEVICE>BTF:MAG:DANFYSIK:QUATM002</DEVICE>
   </macros>
   <width>1000</width>
-  <height>840</height>
+  <height>1010</height>
   <background_color>
     <color name="Display_Background" red="255" green="255" blue="255">
     </color>
@@ -275,7 +275,7 @@
   
   <widget type="label" version="2.0.0">
     <name>AdcTitle</name>
-    <text>Raw ADC Values</text>
+    <text>Scaled ADC Values (converted using IMAX/VMAX)</text>
     <x>30</x>
     <y>260</y>
     <width>150</width>
@@ -1225,6 +1225,278 @@
       <color name="MAJOR" red="255" green="0" blue="0">
       </color>
     </on_color>
+  </widget>
+
+  <!-- Raw ADC Diagnostics (unscaled, straight device replies) -->
+  <widget type="rectangle" version="2.0.0">
+    <name>RawAdcFrame</name>
+    <x>20</x>
+    <y>855</y>
+    <width>960</width>
+    <height>135</height>
+    <line_color>
+      <color name="Grid" red="90" green="90" blue="90">
+      </color>
+    </line_color>
+    <background_color>
+      <color name="Read_Background" red="245" green="245" blue="255">
+      </color>
+    </background_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>RawAdcTitle</name>
+    <text>Raw ADC Diagnostics (unscaled - no IMAX/VMAX applied)</text>
+    <x>30</x>
+    <y>860</y>
+    <width>500</width>
+    <height>20</height>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="12.0">
+      </font>
+    </font>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>RawLabel_RAW_AD0</name>
+    <text>AD0: Iout (I/In)*100:</text>
+    <x>30</x>
+    <y>890</y>
+    <width>170</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="textupdate" version="2.0.0">
+    <name>RawValue_RAW_AD0</name>
+    <pv_name>$(P):$(R):RAW_AD0</pv_name>
+    <x>205</x>
+    <y>890</y>
+    <width>100</width>
+    <height>18</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>RawLabel_RAW_AD1</name>
+    <text>AD1: Tesla T*100:</text>
+    <x>340</x>
+    <y>890</y>
+    <width>170</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="textupdate" version="2.0.0">
+    <name>RawValue_RAW_AD1</name>
+    <pv_name>$(P):$(R):RAW_AD1</pv_name>
+    <x>515</x>
+    <y>890</y>
+    <width>100</width>
+    <height>18</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>RawLabel_RAW_AD2</name>
+    <text>AD2: Vout (V/Vn)*100:</text>
+    <x>650</x>
+    <y>890</y>
+    <width>170</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="textupdate" version="2.0.0">
+    <name>RawValue_RAW_AD2</name>
+    <pv_name>$(P):$(R):RAW_AD2</pv_name>
+    <x>825</x>
+    <y>890</y>
+    <width>100</width>
+    <height>18</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>RawLabel_RAW_AD3</name>
+    <text>AD3: +15V *10:</text>
+    <x>30</x>
+    <y>914</y>
+    <width>170</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="textupdate" version="2.0.0">
+    <name>RawValue_RAW_AD3</name>
+    <pv_name>$(P):$(R):RAW_AD3</pv_name>
+    <x>205</x>
+    <y>914</y>
+    <width>100</width>
+    <height>18</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>RawLabel_RAW_AD4</name>
+    <text>AD4: -15V *10:</text>
+    <x>340</x>
+    <y>914</y>
+    <width>170</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="textupdate" version="2.0.0">
+    <name>RawValue_RAW_AD4</name>
+    <pv_name>$(P):$(R):RAW_AD4</pv_name>
+    <x>515</x>
+    <y>914</y>
+    <width>100</width>
+    <height>18</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>RawLabel_RAW_AD5</name>
+    <text>AD5: +5V *10:</text>
+    <x>650</x>
+    <y>914</y>
+    <width>170</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="textupdate" version="2.0.0">
+    <name>RawValue_RAW_AD5</name>
+    <pv_name>$(P):$(R):RAW_AD5</pv_name>
+    <x>825</x>
+    <y>914</y>
+    <width>100</width>
+    <height>18</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>RawLabel_RAW_AD6</name>
+    <text>AD6: dTemp *10:</text>
+    <x>30</x>
+    <y>938</y>
+    <width>170</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="textupdate" version="2.0.0">
+    <name>RawValue_RAW_AD6</name>
+    <pv_name>$(P):$(R):RAW_AD6</pv_name>
+    <x>205</x>
+    <y>938</y>
+    <width>100</width>
+    <height>18</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>RawLabel_RAW_AD7</name>
+    <text>AD7: Trans Vce (V):</text>
+    <x>340</x>
+    <y>938</y>
+    <width>170</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="textupdate" version="2.0.0">
+    <name>RawValue_RAW_AD7</name>
+    <pv_name>$(P):$(R):RAW_AD7</pv_name>
+    <x>515</x>
+    <y>938</y>
+    <width>100</width>
+    <height>18</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>RawLabel_RAW_AD8</name>
+    <text>AD8: HiRes I (I/In)*1e5:</text>
+    <x>650</x>
+    <y>938</y>
+    <width>170</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="textupdate" version="2.0.0">
+    <name>RawValue_RAW_AD8</name>
+    <pv_name>$(P):$(R):RAW_AD8</pv_name>
+    <x>825</x>
+    <y>938</y>
+    <width>100</width>
+    <height>18</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>RawLabel_RAW_AD9</name>
+    <text>AD9: Aux I (I/In)*120:</text>
+    <x>30</x>
+    <y>962</y>
+    <width>170</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="textupdate" version="2.0.0">
+    <name>RawValue_RAW_AD9</name>
+    <pv_name>$(P):$(R):RAW_AD9</pv_name>
+    <x>205</x>
+    <y>962</y>
+    <width>100</width>
+    <height>18</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>RawLabel_RAW_RA</name>
+    <text>RA: DAC Setpoint:</text>
+    <x>340</x>
+    <y>962</y>
+    <width>170</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="textupdate" version="2.0.0">
+    <name>RawValue_RAW_RA</name>
+    <pv_name>$(P):$(R):RAW_RA</pv_name>
+    <x>515</x>
+    <y>962</y>
+    <width>100</width>
+    <height>18</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
   </widget>
 
 </display>

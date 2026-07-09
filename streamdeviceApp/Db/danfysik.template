@@ -629,3 +629,98 @@ record(calc, "$(DEVICE):CONNECTED")
     field(INPA, "$(DEVICE):I_RB.STAT")
     field(SCAN, "$(SCAN_FAST=1 second)")
 }
+
+################################################################################
+# Raw ADC Diagnostics (unscaled - no IMAX/VMAX conversion applied)
+################################################################################
+# Plain "AD n" replies, straight from the device, with no ASLO/ESLO applied.
+# Useful to calibrate/verify IMAX and VMAX against known real readings
+# without a wrong nominal-current guess distorting the numbers.
+
+record(longin, "$(DEVICE):RAW_AD0")
+{
+    field(DESC, "Raw AD0 - Output Current (I/In)*100")
+    field(DTYP, "stream")
+    field(INP,  "@danfysik.proto get_output_current($(ADDR)) $(PORT)")
+    field(SCAN, "$(SCAN_FAST=1 second)")
+}
+
+record(longin, "$(DEVICE):RAW_AD1")
+{
+    field(DESC, "Raw AD1 - Tesla Field T*100")
+    field(DTYP, "stream")
+    field(INP,  "@danfysik.proto get_tesla($(ADDR)) $(PORT)")
+    field(SCAN, "$(SCAN_FAST=1 second)")
+}
+
+record(longin, "$(DEVICE):RAW_AD2")
+{
+    field(DESC, "Raw AD2 - Output Voltage (V/Vn)*100")
+    field(DTYP, "stream")
+    field(INP,  "@danfysik.proto get_output_voltage($(ADDR)) $(PORT)")
+    field(SCAN, "$(SCAN_FAST=1 second)")
+}
+
+record(longin, "$(DEVICE):RAW_AD3")
+{
+    field(DESC, "Raw AD3 - Internal +15V (V*10)")
+    field(DTYP, "stream")
+    field(INP,  "@danfysik.proto get_p15v($(ADDR)) $(PORT)")
+    field(SCAN, "$(SCAN_SLOW=10 second)")
+}
+
+record(longin, "$(DEVICE):RAW_AD4")
+{
+    field(DESC, "Raw AD4 - Internal -15V (V*10)")
+    field(DTYP, "stream")
+    field(INP,  "@danfysik.proto get_m15v($(ADDR)) $(PORT)")
+    field(SCAN, "$(SCAN_SLOW=10 second)")
+}
+
+record(longin, "$(DEVICE):RAW_AD5")
+{
+    field(DESC, "Raw AD5 - Internal +5V (V*10)")
+    field(DTYP, "stream")
+    field(INP,  "@danfysik.proto get_p5v($(ADDR)) $(PORT)")
+    field(SCAN, "$(SCAN_SLOW=10 second)")
+}
+
+record(longin, "$(DEVICE):RAW_AD6")
+{
+    field(DESC, "Raw AD6 - Delta Temperature (Deg.C*10)")
+    field(DTYP, "stream")
+    field(INP,  "@danfysik.proto get_temp_delta($(ADDR)) $(PORT)")
+    field(SCAN, "$(SCAN_SLOW=10 second)")
+}
+
+record(longin, "$(DEVICE):RAW_AD7")
+{
+    field(DESC, "Raw AD7 - Transistor Bank Vce (V)")
+    field(DTYP, "stream")
+    field(INP,  "@danfysik.proto get_vce($(ADDR)) $(PORT)")
+    field(SCAN, "$(SCAN_SLOW=10 second)")
+}
+
+record(longin, "$(DEVICE):RAW_AD8")
+{
+    field(DESC, "Raw AD8 - High-Res Current (I/In)*100000")
+    field(DTYP, "stream")
+    field(INP,  "@danfysik.proto get_hires_current($(ADDR)) $(PORT)")
+    field(SCAN, "$(SCAN_FAST=1 second)")
+}
+
+record(longin, "$(DEVICE):RAW_AD9")
+{
+    field(DESC, "Raw AD9 - Aux Current, Control Panel (I/In)*120")
+    field(DTYP, "stream")
+    field(INP,  "@danfysik.proto get_aux_current($(ADDR)) $(PORT)")
+    field(SCAN, "$(SCAN_FAST=1 second)")
+}
+
+record(longin, "$(DEVICE):RAW_RA")
+{
+    field(DESC, "Raw RA - DAC Current Setpoint Register")
+    field(DTYP, "stream")
+    field(INP,  "@danfysik.proto get_current_sp($(ADDR)) $(PORT)")
+    field(SCAN, "$(SCAN_FAST=1 second)")
+}
