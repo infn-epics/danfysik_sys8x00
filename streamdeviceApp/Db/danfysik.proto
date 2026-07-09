@@ -149,6 +149,11 @@ set_pol_reverse { out "ADR \$1"; out "PO-"; }
 # Returns 24 characters: '!' = error/non-normal, '.' = normal
 get_status { out "ADR \$1"; out "S1"; in "%24c"; }
 
+# Read the same 24-character status string, but decoded as a single 24-bit
+# mask (character 1 = bit 23 .. character 24 = bit 0) using StreamDevice's
+# binary converter, so individual bits can be extracted with calc records.
+get_status_bits { out "ADR \$1"; out "S1"; in "%24B.!"; }
+
 ################################################################################
 # Communication Control
 ################################################################################

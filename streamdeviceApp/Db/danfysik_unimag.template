@@ -190,8 +190,9 @@ record(mbbo, "$(DEVICE):SEQ_STEP")
 record(calc, "$(DEVICE):INTERLOCKED")
 {
     field(DESC, "Interlock Active")
-    field(INPA, "$(DEVICE):STATUS.SEVR CP")
-    field(CALC, "A>0")
+    # bit14 = "SUM-INTERLOCK" in the S1 status bitmask (see STATUS_BITS)
+    field(INPA, "$(DEVICE):STATUS_BITS CP")
+    field(CALC, "(A>>14)&1")
 }
 
 # Ready for operation

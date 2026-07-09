@@ -176,10 +176,14 @@ record(ao, "$(DEVICE):I_SP")
     field(HOPR, "$(IMAX)")
     field(LOPR, "0")
     # Convert Amps to DAC value: DAC = (I/Imax) * 1,000,000
-    field(ASLO, "1000000")
+    # (mirrors I_SP_RB's ASLO/ESLO below - ASLO=1000000/ESLO=IMAX made this
+    # divide by ASLO*ESLO=1e8 instead of multiplying by 1e6/IMAX, so every
+    # setpoint rounded to DAC=0 and "WA 000000" was sent no matter what
+    # value was written)
+    field(ASLO, "$(IMAX)")
     field(AOFF, "0")
     field(LINR, "SLOPE")
-    field(ESLO, "$(IMAX)")
+    field(ESLO, "0.000001")
     field(EOFF, "0")
 }
 
@@ -402,12 +406,26 @@ record(stringin, "$(DEVICE):STATUS")
     field(SCAN, "$(SCAN_FAST=1 second)")
 }
 
-# Individual status bits (derived from status string)
+# Same S1 status string decoded as a 24-bit mask (character 1 = bit 23 ...
+# character 24 = bit 0), per the manual's per-character bit table:
+# bit23=MAIN POWER OFF, bit21=POL NORMAL, bit20=POL REVERSED,
+# bit14=SUM-INTERLOCK, bit13=DC OVERCURRENT, bit11=REG MODULE FAILURE,
+# bit10=PREREGULATOR FAILURE, bit9=PHASE FAILURE, bit8=WATERFLOW FAILURE.
+record(longin, "$(DEVICE):STATUS_BITS")
+{
+    field(DESC, "Status Bitmask")
+    field(DTYP, "stream")
+    field(INP,  "@danfysik.proto get_status_bits($(ADDR)) $(PORT)")
+    field(SCAN, "$(SCAN_FAST=1 second)")
+}
+
+# Individual status bits (derived from the real status bitmask)
 record(calc, "$(DEVICE):MAIN_PWR_ON")
 {
     field(DESC, "Main Power ON")
-    field(CALC, "A>0")  # Simplified check
-    field(INPA, "$(DEVICE):STATUS.SEVR")
+    # bit23 = "MAIN POWER OFF"; ON when that bit is clear
+    field(CALC, "!((A>>23)&1)")
+    field(INPA, "$(DEVICE):STATUS_BITS")
     field(SCAN, "$(SCAN_FAST=1 second)")
 }
 
@@ -593,7 +611,8 @@ record(longout, "$(DEVICE):SEQ_TRIGGER")
 record(calc, "$(DEVICE):CONNECTED")
 {
     field(DESC, "Connection Status")
-    field(CALC, "A>0")
+    # I_RB.STAT is 0 (NO_ALARM) exactly when the last comms read succeeded
+    field(CALC, "A=0")
     field(INPA, "$(DEVICE):I_RB.STAT")
     field(SCAN, "$(SCAN_FAST=1 second)")
 }
