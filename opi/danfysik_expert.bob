@@ -125,6 +125,51 @@
     </background_color>
   </widget>
   
+  <!-- Raw WA (direct DAC write, bypasses IMAX conversion) -->
+  <widget type="label" version="2.0.0">
+    <name>RawWaLabel</name>
+    <text>Raw WA (DAC 0-999999):</text>
+    <x>30</x>
+    <y>180</y>
+    <width>150</width>
+    <height>20</height>
+  </widget>
+
+  <widget type="textentry" version="3.0.0">
+    <name>RawWaEntry</name>
+    <pv_name>$(P):$(R):RAW_WA</pv_name>
+    <x>185</x>
+    <y>180</y>
+    <width>100</width>
+    <height>20</height>
+    <background_color>
+      <color name="Write_Background" red="255" green="240" blue="240">
+      </color>
+    </background_color>
+  </widget>
+
+  <widget type="label" version="2.0.0">
+    <name>RawRaLabel2</name>
+    <text>RA RB:</text>
+    <x>300</x>
+    <y>180</y>
+    <width>50</width>
+    <height>20</height>
+  </widget>
+
+  <widget type="textupdate" version="2.0.0">
+    <name>RawRaReadback2</name>
+    <pv_name>$(P):$(R):RAW_RA</pv_name>
+    <x>355</x>
+    <y>180</y>
+    <width>80</width>
+    <height>20</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+  </widget>
+
   <!-- Address Control -->
   <widget type="label" version="2.0.0">
     <name>AddressSetLabel</name>
@@ -1492,6 +1537,73 @@
     <x>515</x>
     <y>962</y>
     <width>100</width>
+    <height>18</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+  </widget>
+
+  <!-- Additional Readable Registers (CTRL_STATE, INFO, MAX) -->
+  <widget type="label" version="2.0.0">
+    <name>CtrlStateLabel</name>
+    <text>Ctrl State (CMDSTATE):</text>
+    <x>30</x>
+    <y>635</y>
+    <width>150</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="textupdate" version="2.0.0">
+    <name>CtrlStateValue</name>
+    <pv_name>$(P):$(R):CTRL_STATE</pv_name>
+    <x>185</x>
+    <y>635</y>
+    <width>100</width>
+    <height>18</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>MaxRbLabel</name>
+    <text>Max Current (MAX, raw):</text>
+    <x>320</x>
+    <y>635</y>
+    <width>150</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="textupdate" version="2.0.0">
+    <name>MaxRbValue</name>
+    <pv_name>$(P):$(R):MAX_RB</pv_name>
+    <x>475</x>
+    <y>635</y>
+    <width>100</width>
+    <height>18</height>
+    <background_color>
+      <color name="Read_Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>InfoLabel</name>
+    <text>Unit Info (PRINT):</text>
+    <x>610</x>
+    <y>635</y>
+    <width>110</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="textupdate" version="2.0.0">
+    <name>InfoValue</name>
+    <pv_name>$(P):$(R):INFO</pv_name>
+    <x>720</x>
+    <y>635</y>
+    <width>260</width>
     <height>18</height>
     <background_color>
       <color name="Read_Background" red="240" green="240" blue="240">

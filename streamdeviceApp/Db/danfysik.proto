@@ -60,6 +60,12 @@ unlock      { out "ADR \$1"; out "UNLOCK"; }
 # Read MPS address
 get_address { out "ADR"; in "%d"; }
 
+# Read maximum allowed current (device's own nominal-current calibration
+# value, in the same DAC units as RA/WA - undocumented reply format, other
+# "read a number" commands on this firmware reply with a bare value, no
+# echoed command prefix)
+get_max_current { out "ADR \$1"; out "MAX"; in "%d"; }
+
 # Set MPS address (00-63)
 set_address { out "ADR \$1"; out "ADR %02d"; }
 

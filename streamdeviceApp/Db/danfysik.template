@@ -61,6 +61,14 @@ record(longout, "$(DEVICE):ADDR_SP")
     field(PINI, "YES")
 }
 
+record(longin, "$(DEVICE):MAX_RB")
+{
+    field(DESC, "Max Allowed Current (raw DAC units)")
+    field(DTYP, "stream")
+    field(INP,  "@danfysik.proto get_max_current($(ADDR)) $(PORT)")
+    field(SCAN, "$(SCAN_SLOW=10 second)")
+}
+
 ################################################################################
 # Control Mode and Status
 ################################################################################
@@ -187,6 +195,15 @@ record(ao, "$(DEVICE):I_SP")
     field(LINR, "SLOPE")
     field(ESLO, "0.000001")
     field(EOFF, "0")
+}
+
+record(longout, "$(DEVICE):RAW_WA")
+{
+    field(DESC, "Raw DAC Setpoint (direct write, no IMAX scaling)")
+    field(DTYP, "stream")
+    field(OUT,  "@danfysik.proto set_current($(ADDR)) $(PORT)")
+    field(DRVL, "0")
+    field(DRVH, "999999")
 }
 
 record(ai, "$(DEVICE):I_SP_RB")
