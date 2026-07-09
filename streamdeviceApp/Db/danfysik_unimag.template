@@ -48,10 +48,13 @@ record(calcout, "$(DEVICE):STATE_DECODE")
 {
     field(DESC, "Decode Power Supply State")
     field(INPA, "$(DEVICE):MAIN_PWR_ON CP")      # Main power status
-    field(INPB, "$(DEVICE):STATUS.SEVR CP")      # Status alarm severity (INVALID when fault)
+    field(INPB, "$(DEVICE):STATUS_BITS CP")      # Raw S1 status bitmask
     field(INPC, "$(DEVICE):POL_CHANGING CP")     # Polarity changing flag
     field(INPD, "$(DEVICE):RAMPING CP")          # Ramping flag
-    field(CALC, "C?5:(D?4:(B>0?3:(A?2:1)))")
+    # bits 1-16 (chars 23..8): SUM-INTERLOCK + every discrete protection
+    # fault (OCP, overload, regulation/preregulator/phase failure,
+    # waterflow, earth leakage, thermal, overtemp, door switch, not-ready)
+    field(CALC, "C?5:(D?4:((B&131070)>0?3:(A?2:1)))")
     field(OUT,  "$(DEVICE):STATE_RB PP")
     field(SCAN, "1 second")
 }
@@ -190,9 +193,11 @@ record(mbbo, "$(DEVICE):SEQ_STEP")
 record(calc, "$(DEVICE):INTERLOCKED")
 {
     field(DESC, "Interlock Active")
-    # bit14 = "SUM-INTERLOCK" in the S1 status bitmask (see STATUS_BITS)
+    # bits 1-16 (chars 23..8): SUM-INTERLOCK + every discrete protection
+    # fault. Broader than just the SUM-INTERLOCK bit (14) alone, which in
+    # practice doesn't reliably aggregate all the individual fault bits.
     field(INPA, "$(DEVICE):STATUS_BITS CP")
-    field(CALC, "(A>>14)&1")
+    field(CALC, "(A&131070)>0")
 }
 
 # Ready for operation
