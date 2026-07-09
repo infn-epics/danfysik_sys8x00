@@ -90,7 +90,7 @@
   
   <widget type="textentry" version="3.0.0">
     <name>DirectCurrent</name>
-    <pv_name>$(DEVICE):I_SP</pv_name>
+    <pv_name>$(P):$(R):I_SP</pv_name>
     <x>160</x>
     <y>120</y>
     <width>120</width>
@@ -113,7 +113,7 @@
   
   <widget type="textupdate" version="2.0.0">
     <name>DirectCurrentReadback</name>
-    <pv_name>$(DEVICE):I_SP_RB</pv_name>
+    <pv_name>$(P):$(R):I_SP_RB</pv_name>
     <x>330</x>
     <y>120</y>
     <width>100</width>
@@ -137,7 +137,7 @@
   
   <widget type="textentry" version="3.0.0">
     <name>AddressSet</name>
-    <pv_name>$(DEVICE):ADDR_SP</pv_name>
+    <pv_name>$(P):$(R):ADDR_SP</pv_name>
     <x>530</x>
     <y>120</y>
     <width>60</width>
@@ -153,7 +153,7 @@
     <name>InitRemoteButton</name>
     <actions>
       <action type="write_pv">
-        <pv_name>$(DEVICE):INIT_REMOTE</pv_name>
+        <pv_name>$(P):$(R):INIT_REMOTE</pv_name>
         <value>1</value>
         <description>Initialize Remote Control</description>
       </action>
@@ -173,7 +173,7 @@
     <name>ErrorTextButton</name>
     <actions>
       <action type="write_pv">
-        <pv_name>$(DEVICE):ERROR_TEXT</pv_name>
+        <pv_name>$(P):$(R):ERROR_TEXT</pv_name>
         <value>1</value>
         <description>Enable Text Error Messages</description>
       </action>
@@ -210,7 +210,7 @@
   
   <widget type="textentry" version="3.0.0">
     <name>RampEndExpert</name>
-    <pv_name>$(DEVICE):RAMP_END_SP</pv_name>
+    <pv_name>$(P):$(R):RAMP_END_SP</pv_name>
     <x>180</x>
     <y>150</y>
     <width>100</width>
@@ -229,7 +229,7 @@
   
   <widget type="textentry" version="3.0.0">
     <name>RampRateExpert</name>
-    <pv_name>$(DEVICE):RAMP_RATE_SP</pv_name>
+    <pv_name>$(P):$(R):RAMP_RATE_SP</pv_name>
     <x>330</x>
     <y>150</y>
     <width>100</width>
@@ -249,7 +249,7 @@
   
   <widget type="textentry" version="3.0.0">
     <name>SeqTrigger</name>
-    <pv_name>$(DEVICE):SEQ_TRIGGER</pv_name>
+    <pv_name>$(P):$(R):SEQ_TRIGGER</pv_name>
     <x>530</x>
     <y>150</y>
     <width>60</width>
@@ -298,7 +298,7 @@
   
   <widget type="textupdate" version="2.0.0">
     <name>Adc0Value</name>
-    <pv_name>$(DEVICE):I_RB</pv_name>
+    <pv_name>$(P):$(R):I_RB</pv_name>
     <x>130</x>
     <y>290</y>
     <width>80</width>
@@ -321,7 +321,7 @@
   
   <widget type="textupdate" version="2.0.0">
     <name>Adc1Value</name>
-    <pv_name>$(DEVICE):TESLA_RB</pv_name>
+    <pv_name>$(P):$(R):TESLA_RB</pv_name>
     <x>330</x>
     <y>290</y>
     <width>80</width>
@@ -344,7 +344,7 @@
   
   <widget type="textupdate" version="2.0.0">
     <name>Adc2Value</name>
-    <pv_name>$(DEVICE):V_RB</pv_name>
+    <pv_name>$(P):$(R):V_RB</pv_name>
     <x>130</x>
     <y>315</y>
     <width>80</width>
@@ -367,7 +367,7 @@
   
   <widget type="textupdate" version="2.0.0">
     <name>Adc3Value</name>
-    <pv_name>$(DEVICE):P15V_RB</pv_name>
+    <pv_name>$(P):$(R):P15V_RB</pv_name>
     <x>330</x>
     <y>315</y>
     <width>80</width>
@@ -390,7 +390,7 @@
   
   <widget type="textupdate" version="2.0.0">
     <name>Adc4Value</name>
-    <pv_name>$(DEVICE):M15V_RB</pv_name>
+    <pv_name>$(P):$(R):M15V_RB</pv_name>
     <x>130</x>
     <y>340</y>
     <width>80</width>
@@ -413,7 +413,7 @@
   
   <widget type="textupdate" version="2.0.0">
     <name>Adc5Value</name>
-    <pv_name>$(DEVICE):P5V_RB</pv_name>
+    <pv_name>$(P):$(R):P5V_RB</pv_name>
     <x>330</x>
     <y>340</y>
     <width>80</width>
@@ -436,7 +436,7 @@
   
   <widget type="textupdate" version="2.0.0">
     <name>Adc6Value</name>
-    <pv_name>$(DEVICE):TEMP_DELTA_RB</pv_name>
+    <pv_name>$(P):$(R):TEMP_DELTA_RB</pv_name>
     <x>130</x>
     <y>365</y>
     <width>80</width>
@@ -459,7 +459,7 @@
   
   <widget type="textupdate" version="2.0.0">
     <name>Adc7Value</name>
-    <pv_name>$(DEVICE):VCE_RB</pv_name>
+    <pv_name>$(P):$(R):VCE_RB</pv_name>
     <x>330</x>
     <y>365</y>
     <width>80</width>
@@ -482,7 +482,7 @@
   
   <widget type="textupdate" version="2.0.0">
     <name>Adc8Value</name>
-    <pv_name>$(DEVICE):I_HIRES_RB</pv_name>
+    <pv_name>$(P):$(R):I_HIRES_RB</pv_name>
     <x>130</x>
     <y>390</y>
     <width>80</width>
@@ -535,7 +535,7 @@
   
   <widget type="textupdate" version="2.0.0">
     <name>StatusString2</name>
-    <pv_name>$(DEVICE):STATUS</pv_name>
+    <pv_name>$(P):$(R):STATUS</pv_name>
     <x>610</x>
     <y>290</y>
     <width>360</width>
@@ -571,7 +571,7 @@
   
   <widget type="led" version="2.0.0">
     <name>Bit0Led</name>
-    <pv_name>$(DEVICE):MAIN_PWR_ON</pv_name>
+    <pv_name>$(P):$(R):MAIN_PWR_ON</pv_name>
     <x>560</x>
     <y>345</y>
     <width>15</width>
@@ -589,7 +589,7 @@
   
   <widget type="led" version="2.0.0">
     <name>Bit1Led</name>
-    <pv_name>$(DEVICE):POL_NORMAL</pv_name>
+    <pv_name>$(P):$(R):POL_NORMAL</pv_name>
     <x>610</x>
     <y>345</y>
     <width>15</width>
@@ -607,7 +607,7 @@
   
   <widget type="led" version="2.0.0">
     <name>Bit2Led</name>
-    <pv_name>$(DEVICE):POL_REVERSED</pv_name>
+    <pv_name>$(P):$(R):POL_REVERSED</pv_name>
     <x>660</x>
     <y>345</y>
     <width>15</width>
@@ -656,7 +656,7 @@
   
   <widget type="textupdate" version="2.0.0">
     <name>UnimagState</name>
-    <pv_name>$(DEVICE):UNIMAG:STATE_RB</pv_name>
+    <pv_name>$(P):$(R):STATE_RB</pv_name>
     <x>80</x>
     <y>510</y>
     <width>100</width>
@@ -678,7 +678,7 @@
   
   <widget type="textupdate" version="2.0.0">
     <name>UnimagSeqStep</name>
-    <pv_name>$(DEVICE):UNIMAG:SEQ_STEP</pv_name>
+    <pv_name>$(P):$(R):SEQ_STEP</pv_name>
     <x>270</x>
     <y>510</y>
     <width>100</width>
@@ -700,7 +700,7 @@
   
   <widget type="textupdate" version="2.0.0">
     <name>UnimagTargetPol</name>
-    <pv_name>$(DEVICE):UNIMAG:TARGET_POL</pv_name>
+    <pv_name>$(P):$(R):TARGET_POL</pv_name>
     <x>460</x>
     <y>510</y>
     <width>80</width>
@@ -722,7 +722,7 @@
   
   <widget type="textupdate" version="2.0.0">
     <name>UnimagTargetCurr</name>
-    <pv_name>$(DEVICE):UNIMAG:TARGET_ABS_CURR</pv_name>
+    <pv_name>$(P):$(R):TARGET_ABS_CURR</pv_name>
     <x>620</x>
     <y>510</y>
     <width>80</width>

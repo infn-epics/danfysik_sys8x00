@@ -65,7 +65,7 @@
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>ControlMode</name>
-    <pv_name>$(DEVICE):CTRL_MODE</pv_name>
+    <pv_name>$(P):$(R):CTRL_MODE</pv_name>
     <x>120</x>
     <y>85</y>
     <width>80</width>
@@ -79,7 +79,7 @@
   </widget>
   <widget type="led" version="2.0.0">
     <name>ConnectionStatus</name>
-    <pv_name>$(DEVICE):CONNECTED</pv_name>
+    <pv_name>$(P):$(R):CONNECTED</pv_name>
     <x>550</x>
     <y>85</y>
   </widget>
@@ -92,7 +92,7 @@
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>Address</name>
-    <pv_name>$(DEVICE):ADDR_RB</pv_name>
+    <pv_name>$(P):$(R):ADDR_RB</pv_name>
     <x>100</x>
     <y>110</y>
     <width>50</width>
@@ -106,7 +106,7 @@
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>Version</name>
-    <pv_name>$(DEVICE):VERSION</pv_name>
+    <pv_name>$(P):$(R):VERSION</pv_name>
     <x>360</x>
     <y>110</y>
     <width>200</width>
@@ -145,7 +145,7 @@
   </widget>
   <widget type="led" version="2.0.0">
     <name>MainPowerLed</name>
-    <pv_name>$(DEVICE):MAIN_PWR_ON</pv_name>
+    <pv_name>$(P):$(R):MAIN_PWR_ON</pv_name>
     <x>690</x>
     <y>85</y>
   </widget>
@@ -158,7 +158,7 @@
   </widget>
   <widget type="led" version="2.0.0">
     <name>InterlockLed</name>
-    <pv_name>$(DEVICE):UNIMAG:INTERLOCKED</pv_name>
+    <pv_name>$(P):$(R):INTERLOCKED</pv_name>
     <x>800</x>
     <y>85</y>
     <off_color>
@@ -179,7 +179,7 @@
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>StatusString</name>
-    <pv_name>$(DEVICE):STATUS</pv_name>
+    <pv_name>$(P):$(R):STATUS</pv_name>
     <x>700</x>
     <y>110</y>
     <width>470</width>
@@ -212,7 +212,7 @@
   </widget>
   <widget type="bool_button" version="2.0.0">
     <name>PowerButton</name>
-    <pv_name>$(DEVICE):POWER_SP</pv_name>
+    <pv_name>$(P):$(R):POWER_SP</pv_name>
     <x>30</x>
     <y>220</y>
     <off_label>Power OFF</off_label>
@@ -231,7 +231,7 @@
     <actions>
       <action type="write_pv">
         <description>Reset Interlocks</description>
-        <pv_name>$(DEVICE):RESET</pv_name>
+        <pv_name>$(P):$(R):RESET</pv_name>
         <value>1</value>
       </action>
     </actions>
@@ -250,7 +250,7 @@
     <actions>
       <action type="write_pv">
         <description>Global Soft Shutdown</description>
-        <pv_name>$(DEVICE):GOFF</pv_name>
+        <pv_name>$(P):$(R):GOFF</pv_name>
         <value>1</value>
       </action>
     </actions>
@@ -265,7 +265,7 @@
   </widget>
   <widget type="bool_button" version="2.0.0">
     <name>RemoteButton</name>
-    <pv_name>$(DEVICE):REMOTE</pv_name>
+    <pv_name>$(P):$(R):REMOTE</pv_name>
     <x>340</x>
     <y>220</y>
     <off_label>LOCAL</off_label>
@@ -273,7 +273,7 @@
   </widget>
   <widget type="bool_button" version="2.0.0">
     <name>RemoteLockButton</name>
-    <pv_name>$(DEVICE):RLOCK</pv_name>
+    <pv_name>$(P):$(R):RLOCK</pv_name>
     <x>450</x>
     <y>220</y>
     <off_label>UNLOCKED</off_label>
@@ -288,7 +288,7 @@
   </widget>
   <widget type="choice" version="2.0.0">
     <name>PolarityChoice</name>
-    <pv_name>$(DEVICE):POL_SP</pv_name>
+    <pv_name>$(P):$(R):POL_SP</pv_name>
     <x>100</x>
     <y>265</y>
     <width>120</width>
@@ -300,7 +300,7 @@
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>PolarityReadback</name>
-    <pv_name>$(DEVICE):POL_RB</pv_name>
+    <pv_name>$(P):$(R):POL_RB</pv_name>
     <x>230</x>
     <y>265</y>
     <width>30</width>
@@ -344,7 +344,7 @@
   </widget>
   <widget type="textentry" version="3.0.0">
     <name>CurrentSetpoint</name>
-    <pv_name>$(DEVICE):I_SP</pv_name>
+    <pv_name>$(P):$(R):I_SP</pv_name>
     <x>730</x>
     <y>225</y>
     <width>120</width>
@@ -367,7 +367,7 @@
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>CurrentReadback</name>
-    <pv_name>$(DEVICE):I_RB</pv_name>
+    <pv_name>$(P):$(R):I_RB</pv_name>
     <x>730</x>
     <y>255</y>
     <width>120</width>
@@ -383,7 +383,7 @@
   </widget>
   <widget type="meter" version="3.0.0">
     <name>CurrentMeter</name>
-    <pv_name>$(DEVICE):I_RB</pv_name>
+    <pv_name>$(P):$(R):I_RB</pv_name>
     <x>900</x>
     <y>220</y>
     <width>80</width>
@@ -400,7 +400,7 @@
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>VoltageReadback</name>
-    <pv_name>$(DEVICE):V_RB</pv_name>
+    <pv_name>$(P):$(R):V_RB</pv_name>
     <x>730</x>
     <y>285</y>
     <width>120</width>
@@ -449,7 +449,7 @@
   </widget>
   <widget type="textentry" version="3.0.0">
     <name>RampRate</name>
-    <pv_name>$(DEVICE):RAMP_RATE_SP</pv_name>
+    <pv_name>$(P):$(R):RAMP_RATE_SP</pv_name>
     <x>110</x>
     <y>420</y>
     <height>22</height>
@@ -471,7 +471,7 @@
   </widget>
   <widget type="textentry" version="3.0.0">
     <name>RampEnd</name>
-    <pv_name>$(DEVICE):RAMP_END_SP</pv_name>
+    <pv_name>$(P):$(R):RAMP_END_SP</pv_name>
     <x>360</x>
     <y>420</y>
     <height>22</height>
@@ -493,7 +493,7 @@
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>RampRateRB</name>
-    <pv_name>$(DEVICE):RAMP_RATE_RB</pv_name>
+    <pv_name>$(P):$(R):RAMP_RATE_RB</pv_name>
     <x>90</x>
     <y>450</y>
     <width>80</width>
@@ -508,7 +508,7 @@
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>RampEndRB</name>
-    <pv_name>$(DEVICE):RAMP_END_RB</pv_name>
+    <pv_name>$(P):$(R):RAMP_END_RB</pv_name>
     <x>260</x>
     <y>450</y>
     <width>80</width>
@@ -549,7 +549,7 @@
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>P15V</name>
-    <pv_name>$(DEVICE):P15V_RB</pv_name>
+    <pv_name>$(P):$(R):P15V_RB</pv_name>
     <x>650</x>
     <y>420</y>
     <width>60</width>
@@ -564,7 +564,7 @@
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>M15V</name>
-    <pv_name>$(DEVICE):M15V_RB</pv_name>
+    <pv_name>$(P):$(R):M15V_RB</pv_name>
     <x>760</x>
     <y>420</y>
     <width>60</width>
@@ -579,7 +579,7 @@
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>P5V</name>
-    <pv_name>$(DEVICE):P5V_RB</pv_name>
+    <pv_name>$(P):$(R):P5V_RB</pv_name>
     <x>865</x>
     <y>420</y>
     <width>60</width>
@@ -594,7 +594,7 @@
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>TempDelta</name>
-    <pv_name>$(DEVICE):TEMP_DELTA_RB</pv_name>
+    <pv_name>$(P):$(R):TEMP_DELTA_RB</pv_name>
     <x>660</x>
     <y>450</y>
     <width>60</width>
@@ -609,7 +609,7 @@
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>Vce</name>
-    <pv_name>$(DEVICE):VCE_RB</pv_name>
+    <pv_name>$(P):$(R):VCE_RB</pv_name>
     <x>760</x>
     <y>450</y>
     <width>60</width>
@@ -624,7 +624,7 @@
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>Tesla</name>
-    <pv_name>$(DEVICE):TESLA_RB</pv_name>
+    <pv_name>$(P):$(R):TESLA_RB</pv_name>
     <x>875</x>
     <y>450</y>
     <width>80</width>
@@ -717,8 +717,8 @@
     <traces>
       <trace>
         <name>Setpoint</name>
-        <x_pv>$(DEVICE):I_SP.TIME</x_pv>
-        <y_pv>$(DEVICE):I_SP</y_pv>
+        <x_pv>$(P):$(R):I_SP.TIME</x_pv>
+        <y_pv>$(P):$(R):I_SP</y_pv>
         <err_pv></err_pv>
         <axis>0</axis>
         <trace_type>1</trace_type>
@@ -734,8 +734,8 @@
       </trace>
       <trace>
         <name>Readback</name>
-        <x_pv>$(DEVICE):I_RB.TIME</x_pv>
-        <y_pv>$(DEVICE):I_RB</y_pv>
+        <x_pv>$(P):$(R):I_RB.TIME</x_pv>
+        <y_pv>$(P):$(R):I_RB</y_pv>
         <err_pv></err_pv>
         <axis>0</axis>
         <trace_type>1</trace_type>

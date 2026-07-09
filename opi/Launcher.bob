@@ -77,7 +77,8 @@
       <action type="open_display">
         <file>danfysik_main.bob</file>
         <macros>
-          <DEVICE>BTF:MAG:DANFYSIK:QUATM002</DEVICE>
+          <P>BTF:MAG:DANFYSIK</P>
+          <R>QUATM002</R>
         </macros>
         <target>tab</target>
         <description>Open Main Control Panel</description>
@@ -100,7 +101,8 @@
       <action type="open_display">
         <file>danfysik_unimag.bob</file>
         <macros>
-          <DEVICE>BTF:MAG:DANFYSIK:QUATM002</DEVICE>
+          <P>BTF:MAG:DANFYSIK</P>
+<R>QUATM002</R>
         </macros>
         <target>tab</target>
         <description>Open UNIMAG Interface</description>
@@ -123,7 +125,8 @@
       <action type="open_display">
         <file>danfysik_expert.bob</file>
         <macros>
-          <DEVICE>BTF:MAG:DANFYSIK:QUATM002</DEVICE>
+          <P>BTF:MAG:DANFYSIK</P>
+<R>QUATM002</R>
         </macros>
         <target>tab</target>
         <description>Open Expert Panel</description>
@@ -160,7 +163,8 @@
       <action type="open_display">
         <file>danfysik_main.bob</file>
         <macros>
-          <DEVICE>BTF:MAG:DANFYSIK:QUATM003</DEVICE>
+          <P>BTF:MAG:DANFYSIK</P>
+<R>QUATM003</R>
         </macros>
         <target>tab</target>
         <description>Open Main Control Panel</description>
@@ -183,7 +187,8 @@
       <action type="open_display">
         <file>danfysik_unimag.bob</file>
         <macros>
-          <DEVICE>BTF:MAG:DANFYSIK:QUATM003</DEVICE>
+          <P>BTF:MAG:DANFYSIK</P>
+<R>QUATM003</R>
         </macros>
         <target>tab</target>
         <description>Open UNIMAG Interface</description>
@@ -206,7 +211,8 @@
       <action type="open_display">
         <file>danfysik_expert.bob</file>
         <macros>
-          <DEVICE>BTF:MAG:DANFYSIK:QUATM003</DEVICE>
+          <P>BTF:MAG:DANFYSIK</P>
+<R>QUATM003</R>
         </macros>
         <target>tab</target>
         <description>Open Expert Panel</description>
