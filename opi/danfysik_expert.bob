@@ -6,7 +6,7 @@
     <DEVICE>BTF:MAG:DANFYSIK:QUATM002</DEVICE>
   </macros>
   <width>1000</width>
-  <height>700</height>
+  <height>840</height>
   <background_color>
     <color name="Display_Background" red="255" green="255" blue="255">
     </color>
@@ -781,4 +781,450 @@
     </background_color>
   </widget>
   
+  <!-- Interlock / Fault Detail (decoded from S1 status bits, see STATUS_BITS) -->
+  <widget type="rectangle" version="2.0.0">
+    <name>FaultDetailFrame</name>
+    <x>20</x>
+    <y>685</y>
+    <width>960</width>
+    <height>135</height>
+    <line_color>
+      <color name="Grid" red="90" green="90" blue="90">
+      </color>
+    </line_color>
+    <background_color>
+      <color name="Read_Background" red="255" green="245" blue="245">
+      </color>
+    </background_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>FaultDetailTitle</name>
+    <text>Interlock / Fault Detail (S1 status bits)</text>
+    <x>30</x>
+    <y>690</y>
+    <width>400</width>
+    <height>20</height>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="12.0">
+      </font>
+    </font>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>FaultLabel_B16</name>
+    <text>Spare IL:</text>
+    <x>30</x>
+    <y>715</y>
+    <width>100</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="led" version="2.0.0">
+    <name>FaultLed_B16</name>
+    <pv_name>$(P):$(R):STATUS_BITS.B16</pv_name>
+    <x>135</x>
+    <y>715</y>
+    <width>15</width>
+    <height>15</height>
+    <off_color>
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </off_color>
+    <on_color>
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>FaultLabel_B15</name>
+    <text>1x Trans Flt:</text>
+    <x>260</x>
+    <y>715</y>
+    <width>100</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="led" version="2.0.0">
+    <name>FaultLed_B15</name>
+    <pv_name>$(P):$(R):STATUS_BITS.B15</pv_name>
+    <x>365</x>
+    <y>715</y>
+    <width>15</width>
+    <height>15</height>
+    <off_color>
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </off_color>
+    <on_color>
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>FaultLabel_B14</name>
+    <text>Sum-IL:</text>
+    <x>490</x>
+    <y>715</y>
+    <width>100</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="led" version="2.0.0">
+    <name>FaultLed_B14</name>
+    <pv_name>$(P):$(R):STATUS_BITS.B14</pv_name>
+    <x>595</x>
+    <y>715</y>
+    <width>15</width>
+    <height>15</height>
+    <off_color>
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </off_color>
+    <on_color>
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>FaultLabel_B13</name>
+    <text>DC Overcur:</text>
+    <x>720</x>
+    <y>715</y>
+    <width>100</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="led" version="2.0.0">
+    <name>FaultLed_B13</name>
+    <pv_name>$(P):$(R):STATUS_BITS.B13</pv_name>
+    <x>825</x>
+    <y>715</y>
+    <width>15</width>
+    <height>15</height>
+    <off_color>
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </off_color>
+    <on_color>
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>FaultLabel_B12</name>
+    <text>DC Overload:</text>
+    <x>30</x>
+    <y>740</y>
+    <width>100</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="led" version="2.0.0">
+    <name>FaultLed_B12</name>
+    <pv_name>$(P):$(R):STATUS_BITS.B12</pv_name>
+    <x>135</x>
+    <y>740</y>
+    <width>15</width>
+    <height>15</height>
+    <off_color>
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </off_color>
+    <on_color>
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>FaultLabel_B11</name>
+    <text>Reg Mod Flt:</text>
+    <x>260</x>
+    <y>740</y>
+    <width>100</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="led" version="2.0.0">
+    <name>FaultLed_B11</name>
+    <pv_name>$(P):$(R):STATUS_BITS.B11</pv_name>
+    <x>365</x>
+    <y>740</y>
+    <width>15</width>
+    <height>15</height>
+    <off_color>
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </off_color>
+    <on_color>
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>FaultLabel_B10</name>
+    <text>PreReg Flt:</text>
+    <x>490</x>
+    <y>740</y>
+    <width>100</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="led" version="2.0.0">
+    <name>FaultLed_B10</name>
+    <pv_name>$(P):$(R):STATUS_BITS.B10</pv_name>
+    <x>595</x>
+    <y>740</y>
+    <width>15</width>
+    <height>15</height>
+    <off_color>
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </off_color>
+    <on_color>
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>FaultLabel_B9</name>
+    <text>Phase Flt:</text>
+    <x>720</x>
+    <y>740</y>
+    <width>100</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="led" version="2.0.0">
+    <name>FaultLed_B9</name>
+    <pv_name>$(P):$(R):STATUS_BITS.B9</pv_name>
+    <x>825</x>
+    <y>740</y>
+    <width>15</width>
+    <height>15</height>
+    <off_color>
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </off_color>
+    <on_color>
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>FaultLabel_B8</name>
+    <text>MPS H2O Flt:</text>
+    <x>30</x>
+    <y>765</y>
+    <width>100</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="led" version="2.0.0">
+    <name>FaultLed_B8</name>
+    <pv_name>$(P):$(R):STATUS_BITS.B8</pv_name>
+    <x>135</x>
+    <y>765</y>
+    <width>15</width>
+    <height>15</height>
+    <off_color>
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </off_color>
+    <on_color>
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>FaultLabel_B7</name>
+    <text>Earth Leak:</text>
+    <x>260</x>
+    <y>765</y>
+    <width>100</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="led" version="2.0.0">
+    <name>FaultLed_B7</name>
+    <pv_name>$(P):$(R):STATUS_BITS.B7</pv_name>
+    <x>365</x>
+    <y>765</y>
+    <width>15</width>
+    <height>15</height>
+    <off_color>
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </off_color>
+    <on_color>
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>FaultLabel_B6</name>
+    <text>Thermal Flt:</text>
+    <x>490</x>
+    <y>765</y>
+    <width>100</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="led" version="2.0.0">
+    <name>FaultLed_B6</name>
+    <pv_name>$(P):$(R):STATUS_BITS.B6</pv_name>
+    <x>595</x>
+    <y>765</y>
+    <width>15</width>
+    <height>15</height>
+    <off_color>
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </off_color>
+    <on_color>
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>FaultLabel_B5</name>
+    <text>MPS OverTmp:</text>
+    <x>720</x>
+    <y>765</y>
+    <width>100</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="led" version="2.0.0">
+    <name>FaultLed_B5</name>
+    <pv_name>$(P):$(R):STATUS_BITS.B5</pv_name>
+    <x>825</x>
+    <y>765</y>
+    <width>15</width>
+    <height>15</height>
+    <off_color>
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </off_color>
+    <on_color>
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>FaultLabel_B4</name>
+    <text>Door/Panic:</text>
+    <x>30</x>
+    <y>790</y>
+    <width>100</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="led" version="2.0.0">
+    <name>FaultLed_B4</name>
+    <pv_name>$(P):$(R):STATUS_BITS.B4</pv_name>
+    <x>135</x>
+    <y>790</y>
+    <width>15</width>
+    <height>15</height>
+    <off_color>
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </off_color>
+    <on_color>
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>FaultLabel_B3</name>
+    <text>Mag H2O Flt:</text>
+    <x>260</x>
+    <y>790</y>
+    <width>100</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="led" version="2.0.0">
+    <name>FaultLed_B3</name>
+    <pv_name>$(P):$(R):STATUS_BITS.B3</pv_name>
+    <x>365</x>
+    <y>790</y>
+    <width>15</width>
+    <height>15</height>
+    <off_color>
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </off_color>
+    <on_color>
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>FaultLabel_B2</name>
+    <text>Mag OverTmp:</text>
+    <x>490</x>
+    <y>790</y>
+    <width>100</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="led" version="2.0.0">
+    <name>FaultLed_B2</name>
+    <pv_name>$(P):$(R):STATUS_BITS.B2</pv_name>
+    <x>595</x>
+    <y>790</y>
+    <width>15</width>
+    <height>15</height>
+    <off_color>
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </off_color>
+    <on_color>
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
+  </widget>
+  
+  <widget type="label" version="2.0.0">
+    <name>FaultLabel_B1</name>
+    <text>MPS NotRdy:</text>
+    <x>720</x>
+    <y>790</y>
+    <width>100</width>
+    <height>18</height>
+  </widget>
+  
+  <widget type="led" version="2.0.0">
+    <name>FaultLed_B1</name>
+    <pv_name>$(P):$(R):STATUS_BITS.B1</pv_name>
+    <x>825</x>
+    <y>790</y>
+    <width>15</width>
+    <height>15</height>
+    <off_color>
+      <color name="OK" red="0" green="255" blue="0">
+      </color>
+    </off_color>
+    <on_color>
+      <color name="MAJOR" red="255" green="0" blue="0">
+      </color>
+    </on_color>
+  </widget>
+
 </display>

@@ -42,10 +42,12 @@ record(stringin, "$(DEVICE):VERSION")
 record(longin, "$(DEVICE):ADDR_RB")
 {
     field(DESC, "MPS Address Readback")
-    field(DTYP, "stream")
-    field(INP,  "@danfysik.proto get_address() $(PORT)")
     # Bare "ADR" read is not implemented on this SYS8800 firmware
-    # ("?<BEL> DATA PARM ERROR"), so left Passive/no-PINI.
+    # ("?<BEL> DATA PARM ERROR"), so this just shows the address this IOC
+    # is actually configured to talk to ($(ADDR)) rather than a live read.
+    field(DTYP, "Soft Channel")
+    field(VAL,  "$(ADDR)")
+    field(PINI, "YES")
 }
 
 record(longout, "$(DEVICE):ADDR_SP")
@@ -411,13 +413,24 @@ record(stringin, "$(DEVICE):STATUS")
 # bit23=MAIN POWER OFF, bit21=POL NORMAL, bit20=POL REVERSED,
 # bit14=SUM-INTERLOCK, bit13=DC OVERCURRENT, bit11=REG MODULE FAILURE,
 # bit10=PREREGULATOR FAILURE, bit9=PHASE FAILURE, bit8=WATERFLOW FAILURE.
-record(longin, "$(DEVICE):STATUS_BITS")
+record(mbbiDirect, "$(DEVICE):STATUS_BITS")
 {
     field(DESC, "Status Bitmask")
     field(DTYP, "stream")
     field(INP,  "@danfysik.proto get_status_bits($(ADDR)) $(PORT)")
+    field(NOBT, "24")
     field(SCAN, "$(SCAN_FAST=1 second)")
 }
+
+# STATUS_BITS.B<n> (mbbiDirect) exposes each bit individually for OPI LEDs,
+# e.g. STATUS_BITS.B13 = DC OVERCURRENT, without extra polling of S1:
+# B23=MAIN POWER OFF, B21=POL NORMAL, B20=POL REVERSED, B16=SPARE INTERLOCK,
+# B15=ONE TRANSISTOR FAULT, B14=SUM-INTERLOCK, B13=DC OVERCURRENT,
+# B12=DC OVERLOAD, B11=REGULATION MODULE FAILURE, B10=PREREGULATOR FAILURE,
+# B9=PHASE FAILURE, B8=MPS WATERFLOW FAILURE, B7=EARTH LEAKAGE FAILURE,
+# B6=THERMAL BREAKER/FUSES, B5=MPS OVERTEMPERATURE, B4=PANIC BUTTON/DOOR
+# SWITCH, B3=MAGNET WATERFLOW FAILURE, B2=MAGNET OVERTEMPERATURE,
+# B1=MPS NOT READY.
 
 # Individual status bits (derived from the real status bitmask)
 record(calc, "$(DEVICE):MAIN_PWR_ON")
