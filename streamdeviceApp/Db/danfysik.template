@@ -58,7 +58,8 @@ record(longout, "$(DEVICE):ADDR_SP")
     field(DRVL, "0")
     field(DRVH, "63")
     field(VAL,  "$(ADDR=1)")
-    field(PINI, "YES")
+    # No longer PINI="YES" - don't re-address/write to hardware automatically
+    # at every IOC boot, only when explicitly commanded.
 }
 
 record(longin, "$(DEVICE):MAX_RB")
@@ -100,7 +101,6 @@ record(bo, "$(DEVICE):POWER_SP")
     field(OUT,  "@danfysik.proto power_on($(ADDR)) $(PORT)")
     field(ZNAM, "Off")
     field(ONAM, "On")
-    field(HIGH, "1")
     # Process OFF record when this goes to 0
     field(FLNK, "$(DEVICE):POWER_OFF_PROC")
 }
@@ -157,8 +157,9 @@ record(bo, "$(DEVICE):REMOTE")
     field(OUT,  "@danfysik.proto remote_ctrl($(ADDR)) $(PORT)")
     field(ZNAM, "Local")
     field(ONAM, "Remote")
-    field(PINI, "YES")
     field(VAL,  "1")
+    # No longer PINI="YES" - don't force remote mode automatically at every
+    # IOC boot, only when explicitly commanded.
 }
 
 record(bo, "$(DEVICE):RLOCK")
@@ -170,6 +171,20 @@ record(bo, "$(DEVICE):RLOCK")
     field(ONAM, "Locked")
 }
 
+record(bo, "$(DEVICE):UNLOCK")
+{
+    # Releases a LOCK condition set by the local control panel so the
+    # remote line can hold control. Manual: emergency use only. CTRL_STATE
+    # (CMDSTATE) reading "LOCK" instead of "REMOTE" despite CMD saying REM
+    # is the leading theory for why a remote power-on doesn't hold.
+    field(DESC, "Unlock Remote Control")
+    field(DTYP, "stream")
+    field(OUT,  "@danfysik.proto unlock($(ADDR)) $(PORT)")
+    field(ZNAM, "Unlock")
+    field(ONAM, "Unlock")
+    field(VAL,  "0")
+}
+
 ################################################################################
 # Current Control (Main)
 ################################################################################
@@ -177,24 +192,19 @@ record(bo, "$(DEVICE):RLOCK")
 record(ao, "$(DEVICE):I_SP")
 {
     field(DESC, "Current Setpoint")
-    field(DTYP, "stream")
-    field(OUT,  "@danfysik.proto set_current($(ADDR)) $(PORT)")
+    # No longer writes "WA" directly to hardware. setCurrent&TrigSYS8X00.vi
+    # (the working LabVIEW software) always sets current via WAR (ramp
+    # end) + TS (trigger), never WA - so this now just forwards to
+    # RAMP_END_SP, which does the real WAR write and FLNKs to
+    # SEQ_TRIGGER (TS), matching that pattern exactly.
+    field(DTYP, "Soft Channel")
+    field(OUT,  "$(DEVICE):RAMP_END_SP PP")
     field(EGU,  "A")
     field(PREC, "$(PREC=3)")
     field(DRVL, "0")
     field(DRVH, "$(IMAX)")
     field(HOPR, "$(IMAX)")
     field(LOPR, "0")
-    # Convert Amps to DAC value: DAC = (I/Imax) * 1,000,000
-    # (mirrors I_SP_RB's ASLO/ESLO below - ASLO=1000000/ESLO=IMAX made this
-    # divide by ASLO*ESLO=1e8 instead of multiplying by 1e6/IMAX, so every
-    # setpoint rounded to DAC=0 and "WA 000000" was sent no matter what
-    # value was written)
-    field(ASLO, "$(IMAX)")
-    field(AOFF, "0")
-    field(LINR, "SLOPE")
-    field(ESLO, "0.000001")
-    field(EOFF, "0")
 }
 
 record(longout, "$(DEVICE):RAW_WA")
@@ -216,11 +226,19 @@ record(ai, "$(DEVICE):I_SP_RB")
     field(SCAN, "$(SCAN_FAST=1 second)")
     field(HOPR, "$(IMAX)")
     field(LOPR, "0")
-    # Convert DAC value to Amps: I = Imax * (DAC/1,000,000)
-    field(ASLO, "$(IMAX)")
-    field(AOFF, "0") 
+    # Convert DAC value to Amps. The manual's generic formula
+    # (Current = Nominal_Current * DAC/1e6, i.e. scaled by IMAX) does NOT
+    # match this unit's real behavior - confirmed empirically: the actual
+    # current is DAC/10000 regardless of what IMAX is configured to (e.g.
+    # setting IMAX=1.0 vs 100.0 for the same real current gives the same
+    # DAC register value, not a 100x different one as the IMAX-scaled
+    # formula would require). So this is now a fixed conversion, not
+    # IMAX-dependent - IMAX only limits DRVH/HOPR (a configurable safety
+    # ceiling), not the physical scaling.
+    field(ASLO, "1")
+    field(AOFF, "0")
     field(LINR, "SLOPE")
-    field(ESLO, "0.000001")
+    field(ESLO, "0.0001")
     field(EOFF, "0")
 }
 
@@ -228,17 +246,24 @@ record(ai, "$(DEVICE):I_RB")
 {
     field(DESC, "Output Current Readback")
     field(DTYP, "stream")
-    field(INP,  "@danfysik.proto get_output_current($(ADDR)) $(PORT)")
+    # ADCV (18-bit ADC), not "AD 0" - this unit's own AD-channel table
+    # (manual p.33) has "AD 0" = R ac (mains) voltage, not output current,
+    # which is why this always read a near-constant ~260 regardless of
+    # setpoint. ADCV returns actual output current directly in mA.
+    field(INP,  "@danfysik.proto get_actual_current($(ADDR)) $(PORT)")
     field(EGU,  "A")
     field(PREC, "$(PREC=3)")
     field(SCAN, "$(SCAN_FAST=1 second)")
     field(HOPR, "$(IMAX)")
     field(LOPR, "0")
-    # Convert percentage to Amps: I = Imax * (reading/100)
-    field(ASLO, "$(IMAX)")
+    # ADCV's raw reading uses the same fixed 1/10000 scale as RA/WAR
+    # (confirmed empirically: RVAL=19855 against a real ~2A setpoint,
+    # matching RVAL/10000, not the manual's literal "converted to mA"
+    # description which would need /1000). No IMAX involved either way.
+    field(ASLO, "1")
     field(AOFF, "0")
-    field(LINR, "SLOPE") 
-    field(ESLO, "0.01")
+    field(LINR, "SLOPE")
+    field(ESLO, "0.0001")
     field(EOFF, "0")
 }
 
@@ -275,11 +300,15 @@ record(ai, "$(DEVICE):V_RB")
     field(SCAN, "$(SCAN_FAST=1 second)")
     field(HOPR, "$(VMAX)")
     field(LOPR, "0")
-    # Convert percentage to Volts: V = Vmax * (reading/100)
-    field(ASLO, "$(VMAX)")
+    # Channel 6 ("Output voltage") format per this unit's real AD table
+    # (manual p.33) is plain "DDD" - direct volts, not a (V/Vn)*100
+    # percentage. Confirmed empirically: raw=1 while I_RB read ~3A,
+    # matching a plausible 1V drop directly, not 1% of VMAX(25)=0.25V
+    # (the old, wrong scaling). No VMAX involved - direct 1:1 reading.
+    field(ASLO, "1")
     field(AOFF, "0")
     field(LINR, "SLOPE")
-    field(ESLO, "0.01")
+    field(ESLO, "1")
     field(EOFF, "0")
 }
 
@@ -298,12 +327,17 @@ record(ao, "$(DEVICE):RAMP_END_SP")
     field(DRVH, "$(IMAX)")
     field(HOPR, "$(IMAX)")
     field(LOPR, "0")
-    # Convert Amps to DAC value
-    field(ASLO, "1000000")
+    # Fixed DAC<->Amps conversion (DAC/10000), not IMAX-dependent - see
+    # the comment on I_SP_RB above for why. IMAX only limits DRVH/HOPR.
+    field(ASLO, "1")
     field(AOFF, "0")
     field(LINR, "SLOPE")
-    field(ESLO, "$(IMAX)")
+    field(ESLO, "0.0001")
     field(EOFF, "0")
+    # setCurrent&TrigSYS8X00.vi (the working LabVIEW software) always
+    # follows WAR with TS (trigger sequence) rather than using WA
+    # directly - so writing here also fires the trigger, same as LabVIEW.
+    field(FLNK, "$(DEVICE):SEQ_TRIGGER PP")
 }
 
 record(ai, "$(DEVICE):RAMP_END_RB")
@@ -316,11 +350,12 @@ record(ai, "$(DEVICE):RAMP_END_RB")
     field(SCAN, "$(SCAN_FAST=1 second)")
     field(HOPR, "$(IMAX)")
     field(LOPR, "0")
-    # Convert DAC value to Amps
-    field(ASLO, "$(IMAX)")
+    # Fixed DAC<->Amps conversion (DAC/10000), not IMAX-dependent - see
+    # the comment on I_SP_RB above for why.
+    field(ASLO, "1")
     field(AOFF, "0")
     field(LINR, "SLOPE")
-    field(ESLO, "0.000001")
+    field(ESLO, "0.0001")
     field(EOFF, "0")
 }
 
@@ -336,16 +371,18 @@ record(ao, "$(DEVICE):RAMP_RATE_SP")
     field(HOPR, "$(IMAX)")
     field(LOPR, "0")
     field(VAL,  "5.0")
-    # Convert A/s to percentage/s then to protocol value
-    # Protocol expects 001-100 representing 0.1%-10%/s
-    # So multiply by 10 to get protocol value, then scale by Imax
-    field(ASLO, "10")
+    # Protocol expects raw 001-100, representing 0.1%-10% of IMAX per
+    # second. Same ASLO/ESLO pattern as RAMP_RATE_RB (its mirror-image
+    # readback, which was already correct) - the old ASLO=10/ESLO=100
+    # computed RVAL = VAL/(ASLO*ESLO) = VAL/1000, which rounds to 0 for
+    # any VAL below 1000 A/s, silently never reaching hardware (WR was
+    # never actually sent with a nonzero rate - confirmed via
+    # RAMP_RATE_RB/RVAL reading back 0 after setting VAL=5).
+    field(ASLO, "$(IMAX)")
     field(AOFF, "0")
     field(LINR, "SLOPE")
-    field(ESLO, "100")
-    field(EOFF, "0")  
-    field(EGUF, "$(IMAX)")
-    field(EGUL, "0")
+    field(ESLO, "0.001")
+    field(EOFF, "0")
 }
 
 record(ai, "$(DEVICE):RAMP_RATE_RB")
@@ -425,53 +462,121 @@ record(stringin, "$(DEVICE):STATUS")
     field(SCAN, "$(SCAN_FAST=1 second)")
 }
 
-# Same S1 status string decoded as a 24-bit mask (character 1 = bit 23 ...
-# character 24 = bit 0), per the manual's per-character bit table:
-# bit23=MAIN POWER OFF, bit21=POL NORMAL, bit20=POL REVERSED,
-# bit14=SUM-INTERLOCK, bit13=DC OVERCURRENT, bit11=REG MODULE FAILURE,
-# bit10=PREREGULATOR FAILURE, bit9=PHASE FAILURE, bit8=WATERFLOW FAILURE.
+# Same S1 status string decoded as a bit mask. The real reply is 32
+# characters (confirmed via streamDebug trace 2026-07-10) - the generic
+# 24-char command reference does NOT match this unit at all. The correct,
+# model-specific table is in "Danfysik-manuale sys 8800 (QUA-SXP).pdf"
+# (MAGNET POWER SUPPLY SYSTEM 8800, ITA 4546/INFN Frascati), p.54,
+# char 0 = first character .. char 31 = last (so bit = 31 - char):
+#
+# char  bit  type       meaning
+#  0    31   Spare
+#  1    30   Interlock  User interlock 1
+#  2    29   Interlock  User interlock 2
+#  3    28   Interlock  User interlock 3
+#  4    27   Interlock  User interlock 4
+#  5    26   Interlock  User interlock 5
+#  6    25   Interlock  User interlock 6
+#  7    24   Interlock  Freewheel diode overtemp
+#  8    23   Interlock  Low water flow
+#  9    22   Interlock  Door open
+# 10    21   Status     Positive polarity
+# 11    20   Status     Negative polarity
+# 12    19   Spare
+# 13    18   Spare
+# 14    17   Spare
+# 15    16   Spare
+# 16    15   Interlock  Diode heatsink overtemp
+# 17    14   Interlock  Chassis overtemp
+# 18    13   Interlock  IGBT heatsink overtemp
+# 19    12   Interlock  H.F. diode overtemp
+# 20    11   Interlock  Switch reg. DCCT failure
+# 21    10   Interlock  Switch regulator supply failure
+# 22     9   Interlock  IGBT driver failure
+# 23     8   Spare
+# 24     7   Spare
+# 25     6   Warning    AC undervoltage
+# 26     5   Spare
+# 27     4   Warning    Excessive current ripple
+# 28     3   Warning    Ground leak current
+# 29     2   Interlock  Overcurrent
+# 30     1   Status     Main power is on
+# 31     0   Status     Ready
+#
+# Verified empirically 2026-07-10: bit1 (char30) is the only bit that
+# changed when POWER_SP was toggled on a live unit, and it read "." while
+# genuinely on and "!" while off - i.e. this table's "!" means the same
+# "abnormal/flagged" as every other manual (INTERLOCK: tripped; for this
+# STATUS row: NOT on). Also confirmed: in both units' baseline readings,
+# zero "Interlock"-type bits were active - matching direct physical
+# confirmation that there was no real interlock present. The bits
+# previously treated as faults (old positions 11-16) are actually
+# Spare/Polarity-status bits (char 10-15) on this unit, which is exactly
+# why they never reacted to anything real.
 record(mbbiDirect, "$(DEVICE):STATUS_BITS")
 {
     field(DESC, "Status Bitmask")
     field(DTYP, "stream")
     field(INP,  "@danfysik.proto get_status_bits($(ADDR)) $(PORT)")
-    field(NOBT, "24")
+    field(NOBT, "32")
     field(SCAN, "$(SCAN_FAST=1 second)")
 }
-
-# STATUS_BITS.B<n> (mbbiDirect) exposes each bit individually for OPI LEDs,
-# e.g. STATUS_BITS.B13 = DC OVERCURRENT, without extra polling of S1:
-# B23=MAIN POWER OFF, B21=POL NORMAL, B20=POL REVERSED, B16=SPARE INTERLOCK,
-# B15=ONE TRANSISTOR FAULT, B14=SUM-INTERLOCK, B13=DC OVERCURRENT,
-# B12=DC OVERLOAD, B11=REGULATION MODULE FAILURE, B10=PREREGULATOR FAILURE,
-# B9=PHASE FAILURE, B8=MPS WATERFLOW FAILURE, B7=EARTH LEAKAGE FAILURE,
-# B6=THERMAL BREAKER/FUSES, B5=MPS OVERTEMPERATURE, B4=PANIC BUTTON/DOOR
-# SWITCH, B3=MAGNET WATERFLOW FAILURE, B2=MAGNET OVERTEMPERATURE,
-# B1=MPS NOT READY.
 
 # Individual status bits (derived from the real status bitmask)
 record(calc, "$(DEVICE):MAIN_PWR_ON")
 {
     field(DESC, "Main Power ON")
-    # bit23 = "MAIN POWER OFF"; ON when that bit is clear
-    field(CALC, "!((A>>23)&1)")
+    # bit1 (char30) = "Main power is on"; empirically "." while genuinely
+    # on, "!" while off (see STATUS_BITS comment above).
+    field(CALC, "!((A>>1)&1)")
     field(INPA, "$(DEVICE):STATUS_BITS")
     field(SCAN, "$(SCAN_FAST=1 second)")
 }
 
-record(calc, "$(DEVICE):POL_NORMAL")
+################################################################################
+# Quick Binary Reads (?2/?3) - for catching fast transients the normal
+# 1-second S1/AD polling can miss (e.g. a power-on that trips back off
+# within a second or two).
+################################################################################
+
+record(longin, "$(DEVICE):QUICK_STATUS_RAW")
+{
+    field(DESC, "Quick Binary Status (?2), 32-bit raw")
+    field(DTYP, "stream")
+    field(INP,  "@danfysik.proto quick_status_bin($(ADDR)) $(PORT)")
+    field(SCAN, "$(SCAN_SLOW=10 second)")
+}
+
+record(waveform, "$(DEVICE):QUICK_COMBINED_RAW")
+{
+    field(DESC, "Quick Combined Status+Current (?3), 4+3 raw bytes")
+    field(DTYP, "stream")
+    field(INP,  "@danfysik.proto quick_combined_bin($(ADDR)) $(PORT)")
+    field(FTVL, "UCHAR")
+    field(NELM, "7")
+    field(SCAN, "$(SCAN_SLOW=10 second)")
+}
+
+record(bi, "$(DEVICE):POL_NORMAL")
 {
     field(DESC, "Polarity Normal")
-    field(CALC, "A>0")  # Simplified check
-    field(INPA, "$(DEVICE):POL_RB.SEVR")
+    field(DTYP, "stream")
+    # Real "PO" reading ("+"=Normal), not POL_RB.SEVR (comms-health, not
+    # actual polarity - was always wrong regardless of real polarity,
+    # which made the UNIMAG sequencer always think a polarity change was
+    # needed and autonomously ramp back to standby/off after any
+    # CURRENT_SP write).
+    field(INP,  "@danfysik.proto get_polarity_normal($(ADDR)) $(PORT)")
+    field(ZNAM, "Reversed/Other")
+    field(ONAM, "Normal")
     field(SCAN, "$(SCAN_FAST=1 second)")
 }
 
 record(calc, "$(DEVICE):POL_REVERSED")
 {
     field(DESC, "Polarity Reversed")
-    field(CALC, "!A")  # Simplified check
-    field(INPA, "$(DEVICE):POL_NORMAL")  
+    field(CALC, "!A")
+    field(INPA, "$(DEVICE):POL_NORMAL")
     field(SCAN, "$(SCAN_FAST=1 second)")
 }
 
@@ -570,18 +675,45 @@ record(bo, "$(DEVICE):INIT_REMOTE")
     field(ZNAM, "Initialize")
     field(ONAM, "Initialize")
     field(VAL,  "0")
-    field(PINI, "YES")
+    # No longer PINI="YES" - this also sends "RS" (reset interlocks), so it
+    # must only run when explicitly commanded, never silently at every boot.
 }
 
 record(bo, "$(DEVICE):ERROR_TEXT")
 {
     field(DESC, "Enable Text Error Messages")
-    field(DTYP, "stream")  
+    field(DTYP, "stream")
     field(OUT,  "@danfysik.proto error_text($(ADDR)) $(PORT)")
     field(ZNAM, "Enable")
     field(ONAM, "Enable")
     field(VAL,  "0")
-    field(PINI, "YES")
+    # No longer PINI="YES" - only run when explicitly commanded.
+}
+
+record(bo, "$(DEVICE):ERROR_CODE")
+{
+    # ERRC (coded errors) - what initializeSYS8X00.vi (the working
+    # LabVIEW control software) actually uses, not ERRT.
+    field(DESC, "Enable Coded Error Messages")
+    field(DTYP, "stream")
+    field(OUT,  "@danfysik.proto error_code($(ADDR)) $(PORT)")
+    field(ZNAM, "Enable")
+    field(ONAM, "Enable")
+    field(VAL,  "0")
+}
+
+record(bo, "$(DEVICE):NO_ANSWER")
+{
+    # NASW - cancel auto-answer mode. initializeSYS8X00.vi always sends
+    # this; if ASW was left on from an earlier session, WA/PO+/PO-/
+    # W1-W3 generate unsolicited replies our protocol doesn't expect,
+    # which could desync subsequent reads.
+    field(DESC, "Cancel Auto-Answer Mode")
+    field(DTYP, "stream")
+    field(OUT,  "@danfysik.proto no_answer($(ADDR)) $(PORT)")
+    field(ZNAM, "Disable")
+    field(ONAM, "Disable")
+    field(VAL,  "0")
 }
 
 ################################################################################
@@ -632,6 +764,7 @@ record(longout, "$(DEVICE):SEQ_TRIGGER")
     field(OUT,  "@danfysik.proto trigger_seq($(ADDR)) $(PORT)")
     field(DRVL, "0")
     field(DRVH, "3")
+    field(VAL,  "0")
 }
 
 ################################################################################
@@ -656,10 +789,13 @@ record(calc, "$(DEVICE):CONNECTED")
 
 record(longin, "$(DEVICE):RAW_AD0")
 {
-    field(DESC, "Raw AD0 - Output Current (I/In)*100")
+    # Actually ADCV (18-bit ADC, raw mA) now, not literally "AD 0" - kept
+    # this PV name for compatibility. See get_actual_current comment in
+    # danfysik.proto for why "AD 0" itself was wrong on this unit.
+    field(DESC, "Raw ADCV - Output Current (mA)")
     field(DTYP, "stream")
-    field(INP,  "@danfysik.proto get_output_current($(ADDR)) $(PORT)")
-    field(SCAN, "$(SCAN_FAST=1 second)")
+    field(INP,  "@danfysik.proto get_actual_current($(ADDR)) $(PORT)")
+    field(SCAN, "$(SCAN_SLOW=10 second)")
 }
 
 record(longin, "$(DEVICE):RAW_AD1")
@@ -667,15 +803,17 @@ record(longin, "$(DEVICE):RAW_AD1")
     field(DESC, "Raw AD1 - Tesla Field T*100")
     field(DTYP, "stream")
     field(INP,  "@danfysik.proto get_tesla($(ADDR)) $(PORT)")
-    field(SCAN, "$(SCAN_FAST=1 second)")
+    field(SCAN, "$(SCAN_SLOW=10 second)")
 }
 
 record(longin, "$(DEVICE):RAW_AD2")
 {
-    field(DESC, "Raw AD2 - Output Voltage (V/Vn)*100")
+    # Actually AD 6 now, not literally "AD 2" - kept this PV name for
+    # compatibility. See get_output_voltage comment in danfysik.proto.
+    field(DESC, "Raw AD6 - Output Voltage (V/Vn)*100")
     field(DTYP, "stream")
     field(INP,  "@danfysik.proto get_output_voltage($(ADDR)) $(PORT)")
-    field(SCAN, "$(SCAN_FAST=1 second)")
+    field(SCAN, "$(SCAN_SLOW=10 second)")
 }
 
 record(longin, "$(DEVICE):RAW_AD3")
@@ -723,7 +861,7 @@ record(longin, "$(DEVICE):RAW_AD8")
     field(DESC, "Raw AD8 - High-Res Current (I/In)*100000")
     field(DTYP, "stream")
     field(INP,  "@danfysik.proto get_hires_current($(ADDR)) $(PORT)")
-    field(SCAN, "$(SCAN_FAST=1 second)")
+    field(SCAN, "$(SCAN_SLOW=10 second)")
 }
 
 record(longin, "$(DEVICE):RAW_AD9")
@@ -731,7 +869,7 @@ record(longin, "$(DEVICE):RAW_AD9")
     field(DESC, "Raw AD9 - Aux Current, Control Panel (I/In)*120")
     field(DTYP, "stream")
     field(INP,  "@danfysik.proto get_aux_current($(ADDR)) $(PORT)")
-    field(SCAN, "$(SCAN_FAST=1 second)")
+    field(SCAN, "$(SCAN_SLOW=10 second)")
 }
 
 record(longin, "$(DEVICE):RAW_RA")
@@ -739,5 +877,5 @@ record(longin, "$(DEVICE):RAW_RA")
     field(DESC, "Raw RA - DAC Current Setpoint Register")
     field(DTYP, "stream")
     field(INP,  "@danfysik.proto get_current_sp($(ADDR)) $(PORT)")
-    field(SCAN, "$(SCAN_FAST=1 second)")
+    field(SCAN, "$(SCAN_SLOW=10 second)")
 }

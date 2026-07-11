@@ -51,10 +51,14 @@ record(calcout, "$(DEVICE):STATE_DECODE")
     field(INPB, "$(DEVICE):STATUS_BITS CP")      # Raw S1 status bitmask
     field(INPC, "$(DEVICE):POL_CHANGING CP")     # Polarity changing flag
     field(INPD, "$(DEVICE):RAMPING CP")          # Ramping flag
-    # bits 1-16 (chars 23..8): SUM-INTERLOCK + every discrete protection
-    # fault (OCP, overload, regulation/preregulator/phase failure,
-    # waterflow, earth leakage, thermal, overtemp, door switch, not-ready)
-    field(CALC, "C?5:(D?4:((B&131070)>0?3:(A?2:1)))")
+    # Real, model-specific "Interlock"-type bits only (per the actual
+    # manual table, see STATUS_BITS comment in danfysik.template): user
+    # interlocks 1-6, freewheel diode/diode heatsink/chassis/IGBT
+    # heatsink/H.F. diode overtemp, low water flow, door open, switch reg
+    # DCCT/supply failure, IGBT driver failure, overcurrent. Explicitly
+    # excludes the polarity-status and spare bits that were wrongly
+    # counted as faults before (which never reacted to anything real).
+    field(CALC, "C?5:(D?4:((B&2143354372)>0?3:(A?2:1)))")
     field(OUT,  "$(DEVICE):STATE_RB PP")
     field(SCAN, "1 second")
 }
@@ -193,11 +197,11 @@ record(mbbo, "$(DEVICE):SEQ_STEP")
 record(calc, "$(DEVICE):INTERLOCKED")
 {
     field(DESC, "Interlock Active")
-    # bits 1-16 (chars 23..8): SUM-INTERLOCK + every discrete protection
-    # fault. Broader than just the SUM-INTERLOCK bit (14) alone, which in
-    # practice doesn't reliably aggregate all the individual fault bits.
+    # Real, model-specific "Interlock"-type bits only - see STATUS_BITS
+    # comment in danfysik.template and the matching mask comment on
+    # STATE_DECODE above.
     field(INPA, "$(DEVICE):STATUS_BITS CP")
-    field(CALC, "(A&131070)>0")
+    field(CALC, "(A&2143354372)>0")
 }
 
 # Ready for operation

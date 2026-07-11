@@ -35,7 +35,7 @@ assign stat_standby to "{device}:MAIN_PWR_ON";
 monitor stat_standby;
 
 int stat_power_on;
-assign stat_power_on to "{device}:POWER_SP";
+assign stat_power_on to "{device}:MAIN_PWR_ON";
 monitor stat_power_on;
 
 int cmd_standby;
@@ -45,7 +45,7 @@ int cmd_power_on;
 assign cmd_power_on to "{device}:POWER_SP";
 
 int cmd_start_ramp;
-assign cmd_start_ramp to "{device}:RAMP_RATE_SP";
+assign cmd_start_ramp to "{device}:SEQ_TRIGGER";
 
 int cmd_contactors_open;
 assign cmd_contactors_open to "{device}:POWER_SP";
@@ -81,6 +81,21 @@ int timeout_counter;
 #define POL_NEGATIVE 2
 
 ss unimag_control {
+    state INIT {
+        /* SNL fires the initial "monitor" callback (channel connect,
+           delivering the PV's current value) as a real event - without
+           this drain, current_sp_ef/cmd_reset_ef are already set the
+           moment all channels connect, so IDLE would immediately act on
+           whatever CURRENT_SP/RESET happened to hold at boot, with no
+           user action at all. Confirmed via asyn trace 2026-07-11: this
+           caused an autonomous N -> PO+ -> N -> F sequence within the
+           first second of every IOC boot. */
+        when (delay(0.2)) {
+            efClear(current_sp_ef);
+            efClear(cmd_reset_ef);
+        } state IDLE
+    }
+
     state IDLE {
         when (efTestAndClear(current_sp_ef)) {
             /* New current setpoint received */
@@ -169,7 +184,10 @@ ss unimag_control {
     
     state GO_STANDBY {
         entry {
-            cmd_standby = 1;
+            /* cmd_standby is aliased to POWER_SP (0=Off/1=On) - writing 1
+               here sent "N" (power ON) instead of the intended "F"
+               (standby/off). */
+            cmd_standby = 0;
             pvPut(cmd_standby);
             timeout_counter = 0;
         }
@@ -179,8 +197,8 @@ ss unimag_control {
     }
     
     state WAIT_STANDBY {
-        when (stat_standby) {
-            /* Standby confirmed */
+        when (!stat_standby) {
+            /* Standby confirmed (MAIN_PWR_ON dropped to 0) */
         } state CHANGE_POLARITY
         
         when (timeout_counter++ >= TIMEOUT_TICKS) {
@@ -200,8 +218,10 @@ ss unimag_control {
     
     state CHANGE_POLARITY {
         entry {
-            /* Open contactors first */
-            cmd_contactors_open = 1;
+            /* Open contactors first (POWER_SP=0 -> "F"). Same
+               1-instead-of-0 bug as GO_STANDBY - this used to send "N"
+               (power ON) instead of actually opening the contactors. */
+            cmd_contactors_open = 0;
             pvPut(cmd_contactors_open);
             timeout_counter = 0;
         }

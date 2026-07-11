@@ -67,20 +67,20 @@ drvAsynIPPortConfigure("DANFYSIK_PORT", "$(PS_IP):$(PS_PORT)", 0, 0, 1)
 # Load databases for each power supply device
 
 # QUATM002
-# epicsEnvSet("DEVICE_QUATM002", "$(DEVICE_PREFIX):QUATM002")
-# epicsEnvSet("ADDR_QUATM002", "10")
-# epicsEnvSet("IMAX_QUATM002", "100.0")
-# epicsEnvSet("VMAX_QUATM002", "25.0")
-# dbLoadRecords("$(TOP)/db/danfysik.template", "DEVICE=$(DEVICE_QUATM002),PORT=DANFYSIK_PORT,ADDR=$(ADDR_QUATM002),IMAX=$(IMAX_QUATM002),VMAX=$(VMAX_QUATM002),PREC=3")
-# dbLoadRecords("$(TOP)/db/danfysik_unimag.template", "DEVICE=$(DEVICE_QUATM002),IMAX=$(IMAX_QUATM002)")
+epicsEnvSet("DEVICE_QUATM002", "$(DEVICE_PREFIX):QUATM002")
+epicsEnvSet("ADDR_QUATM002", "10")
+epicsEnvSet("IMAX_QUATM002", "100.0")
+epicsEnvSet("VMAX_QUATM002", "25.0")
+dbLoadRecords("$(TOP)/db/danfysik.template", "DEVICE=$(DEVICE_QUATM002),PORT=DANFYSIK_PORT,ADDR=$(ADDR_QUATM002),IMAX=$(IMAX_QUATM002),VMAX=$(VMAX_QUATM002),PREC=3")
+dbLoadRecords("$(TOP)/db/danfysik_unimag.template", "DEVICE=$(DEVICE_QUATM002),IMAX=$(IMAX_QUATM002)")
 
 # QUATM003
 epicsEnvSet("DEVICE_QUATM003", "$(DEVICE_PREFIX):QUATM003")
 epicsEnvSet("ADDR_QUATM003", "11")
-epicsEnvSet("IMAX_QUATM003", "100.0")
+epicsEnvSet("IMAX_QUATM003", "585.0")
 epicsEnvSet("VMAX_QUATM003", "25.0")
 dbLoadRecords("$(TOP)/db/danfysik.template", "DEVICE=$(DEVICE_QUATM003),PORT=DANFYSIK_PORT,ADDR=$(ADDR_QUATM003),IMAX=$(IMAX_QUATM003),VMAX=$(VMAX_QUATM003),PREC=3")
-#dbLoadRecords("$(TOP)/db/danfysik_unimag.template", "DEVICE=$(DEVICE_QUATM003),IMAX=$(IMAX_QUATM003)")
+dbLoadRecords("$(TOP)/db/danfysik_unimag.template", "DEVICE=$(DEVICE_QUATM003),IMAX=$(IMAX_QUATM003)")
 
 # DHRTB101
 # epicsEnvSet("DEVICE_DHRTB101", "$(DEVICE_PREFIX):DHRTB101")
@@ -92,6 +92,9 @@ dbLoadRecords("$(TOP)/db/danfysik.template", "DEVICE=$(DEVICE_QUATM003),PORT=DAN
 
 #===============================================================================
 # Optional: Load autosave/restore functionality
+
+
+
 #===============================================================================
 # Uncomment if you have autosave support compiled in
 
@@ -121,7 +124,7 @@ dbLoadRecords("$(TOP)/db/danfysik.template", "DEVICE=$(DEVICE_QUATM003),PORT=DAN
 #===============================================================================
 #asynSetTraceMask("DANFYSIK_PORT", -1, 0x09)
 #asynSetTraceIOMask("DANFYSIK_PORT", -1, 0x02)
-var streamDebug 1
+#var streamDebug 1
 
 # Initialize the IOC
 iocInit
@@ -133,8 +136,16 @@ iocInit
 # This sequencer provides automatic polarity switching for bipolar operation
 
 # Load and start UNIMAG control sequencers for each device
+# Re-enabled 2026-07-12 after fixing danfysikUnimagControl.st: stat_power_on
+# was aliased to POWER_SP instead of MAIN_PWR_ON (self-referential
+# confirmation), cmd_standby/cmd_contactors_open wrote 1 instead of 0
+# (sent "N" instead of "F"), WAIT_STANDBY checked the confirmation bit
+# backwards, cmd_start_ramp was aliased to RAMP_RATE_SP instead of
+# SEQ_TRIGGER, and the initial monitor callback on CURRENT_SP/RESET fired
+# a phantom event at every boot with no user action (see asyn trace
+# 2026-07-11 21:44). All fixed and rebuilt.
 seq danfysikUnimagControl, "device=$(DEVICE_QUATM002), debug=1"
-# seq danfysikUnimagControl, "device=$(DEVICE_QUATM003), debug=1"
+seq danfysikUnimagControl, "device=$(DEVICE_QUATM003), debug=1"
 # seq danfysikUnimagControl, "device=$(DEVICE_DHRTB101), debug=1"
 
 #===============================================================================
@@ -177,4 +188,4 @@ epicsThreadSleep 2.0
 # Launch operator interface displays (requires Phoebus or CSS-BOY)
 # Uncomment to open displays automatically at IOC startup
 # export DISPLAY_BUILDER_OPI_TOP=$(TOP)/opi
-# phoebus --resource $(TOP)/opi/danfysik_launcher.bob &
+# phoebus --resource $(TOP)/opi/Launcher.bob &

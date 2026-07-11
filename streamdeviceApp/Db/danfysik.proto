@@ -7,10 +7,12 @@
 
 # Communication parameters
 terminator   = CR;          # Commands terminated by Carriage Return
-replyterminator = CR;    # Responses terminated by Line Feed + Carriage Return  
+replyterminator = CR;    # Responses terminated by Line Feed + Carriage Return
 replytimeout = 2000;        # 2 second timeout for responses
 readtimeout  = 2000;        # 2 second read timeout
 extrainput   = Ignore;      # Ignore extra input
+separator    = "";          # No separator between waveform array elements
+                             # (needed for the raw binary ?2/?3 quick reads)
 
 # Error handling - responses with error include "?BELL" (ASCII 7)
 # We'll handle this by checking for the bell character in responses
@@ -104,34 +106,59 @@ get_ramp_speed { out "ADR \$1"; out "RR"; in "%d"; }
 # ADC Channel Readings
 ################################################################################
 
-# Read output current (Channel 0) - returns (I/In)*100
-get_output_current { out "ADR \$1"; out "AD 0"; in "%d"; }
+# Read actual output current via the dedicated 18-bit ADC command. This
+# unit's own AD-channel table (manual p.33) is NOT the generic (I/In)*100
+# convention assumed below for AD 0 - "AD 0" on THIS unit is "R ac voltage"
+# (3-phase mains input, channel R), not output current at all, which is
+# exactly why I_RB sat at a near-constant ~260 regardless of setpoint
+# (mains voltage doesn't change with the current setpoint). Real output
+# current format: DDDDDD, already in mA (000000 to max rated current),
+# not a DAC/percentage value - no IMAX-based scaling needed.
+get_actual_current { out "ADR \$1"; out "ADCV"; in "%d"; }
 
-# Read Tesla field (Channel 1) - returns T*100
+# SUSPECT - not available on this unit. This unit's real AD table
+# (manual p.33) has NO "Tesla field" channel at all; channel 1 is
+# actually "S ac voltage" (3-phase mains input, phase S). Kept only so
+# existing PVs don't break; do not trust this reading.
 get_tesla { out "ADR \$1"; out "AD 1"; in "%d"; }
 
-# Read output voltage (Channel 2) - returns (V/Vn)*100
-get_output_voltage { out "ADR \$1"; out "AD 2"; in "%d"; }
+# Read output voltage - channel 6 per this unit's real AD table (manual
+# p.33), NOT channel 2 (which is "T ac voltage", 3-phase mains input
+# phase T) - same wrong-generic-table problem as get_actual_current above.
+get_output_voltage { out "ADR \$1"; out "AD 6"; in "%d"; }
 
-# Read +15V supply (Channel 3) - returns V*10
+# SUSPECT - not available on this unit. Real table: channel 3 is "R ac
+# current" (mains input current, phase R), not an internal +15V supply
+# rail. Kept only so existing PVs don't break; do not trust this reading.
 get_p15v { out "ADR \$1"; out "AD 3"; in "%d"; }
 
-# Read -15V supply (Channel 4) - returns V*10
+# SUSPECT - real table: channel 4 is "S ac current" (mains), not -15V.
 get_m15v { out "ADR \$1"; out "AD 4"; in "%d"; }
 
-# Read +5V supply (Channel 5) - returns V*10
+# SUSPECT - real table: channel 5 is "T ac current" (mains), not +5V.
 get_p5v { out "ADR \$1"; out "AD 5"; in "%d"; }
 
-# Read delta temperature (Channel 6) - returns Deg.C*10 with sign
-get_temp_delta { out "ADR \$1"; out "AD 6"; in "%d"; }
+# Read delta temperature - channel 8 per this unit's real AD table
+# (manual p.33), NOT channel 6 (that's actually output voltage, see
+# get_output_voltage above - the two used to collide on the same wrong
+# channel). Manual's answer format is "SDD.D" (signed, one decimal
+# place, e.g. "+12.3") which may not parse correctly with a plain "%d" -
+# untested against a real reply, verify before trusting the scaling in
+# TEMP_DELTA_RB.
+get_temp_delta { out "ADR \$1"; out "AD 8"; in "%d"; }
 
-# Read transistor bank Vce (Channel 7) - returns V
+# SUSPECT - not available on this unit. Real table: channel 7 is "Ground
+# leak current" (mA), not transistor bank Vce.
 get_vce { out "ADR \$1"; out "AD 7"; in "%d"; }
 
-# Read optional high-res current (Channel 8) - returns (I/In)*100000 if equipped
+# SUSPECT - not available on this unit as a separate "hi-res current"
+# channel; this used to collide with channel 8 (delta temperature, now
+# correctly used by get_temp_delta above). Kept only so existing PVs
+# don't break; do not trust this reading.
 get_hires_current { out "ADR \$1"; out "AD 8"; in "%d"; }
 
-# Read aux current (Channel 9) - returns (I/In)*120
+# SUSPECT - real table: channel 9 is "AUX CH1" (0.1V analog input), not
+# an aux current percentage. Different meaning/scale than assumed.
 get_aux_current { out "ADR \$1"; out "AD 9"; in "%d"; }
 
 ################################################################################
@@ -140,6 +167,15 @@ get_aux_current { out "ADR \$1"; out "AD 9"; in "%d"; }
 
 # Read polarity status
 get_polarity { out "ADR \$1"; out "PO"; in "%c"; }
+
+# Read polarity as a proper bi enum: "+" (Normal) -> 1, everything else
+# ("-"=Reverse, "N"/"O"=Neutral/Off) -> 0. Used to fix POL_NORMAL, which
+# used to check POL_RB.SEVR (a comms-health field, not the actual
+# reading) and so was always wrong regardless of real polarity - the
+# UNIMAG sequencer used that to decide "polarity change needed" on every
+# CURRENT_SP write, which is why turning the supply on could
+# autonomously ramp back to standby/off shortly after.
+get_polarity_normal { out "ADR \$1"; out "PO"; in "%#{+=1|-=0|N=0|O=0}"; }
 
 # Set normal polarity
 set_pol_normal { out "ADR \$1"; out "PO+"; }
@@ -151,14 +187,20 @@ set_pol_reverse { out "ADR \$1"; out "PO-"; }
 # Status and Error Monitoring  
 ################################################################################
 
-# Read 24-bit status string (interlocks, polarity, on/off status)
-# Returns 24 characters: '!' = error/non-normal, '.' = normal
-get_status { out "ADR \$1"; out "S1"; in "%24c"; }
+# Read status string (interlocks, polarity, on/off status).
+# The manual documents 24 characters, but this unit's real S1 reply is
+# actually 31 characters ("!.........!.!!!!........!.!...!.") - the
+# trailing 7 were being silently discarded by extrainput=Ignore with a
+# hardcoded %24c, which is why the status never seemed to react to real
+# interlock changes (they were arriving, just past the truncation point).
+# Read generously (up to 40) and let the terminator decide the true length.
+get_status { out "ADR \$1"; out "S1"; in "%40c"; }
 
-# Read the same 24-character status string, but decoded as a single 24-bit
-# mask (character 1 = bit 23 .. character 24 = bit 0) using StreamDevice's
-# binary converter, so individual bits can be extracted with calc records.
-get_status_bits { out "ADR \$1"; out "S1"; in "%24B.!"; }
+# Read the same status string, decoded as a single bit mask (character 1 =
+# highest bit .. last character = bit 0) using StreamDevice's binary
+# converter, so individual bits can be extracted with calc records. Width
+# generous for the same reason as get_status.
+get_status_bits { out "ADR \$1"; out "S1"; in "%40B.!"; }
 
 ################################################################################
 # Communication Control
@@ -202,11 +244,16 @@ get_version { out "ADR \$1"; out "VER"; in ""; in "%80c"; }
 # Note: StreamDevice may need special handling for binary data
 quick_current_bin { out "ADR \$1"; out "?1"; in "%4r"; }
 
-# Quick binary read of status (32-bit)
-quick_status_bin { out "ADR \$1"; out "?2"; in "%4r"; }
+# Quick binary read of status (32-bit). Manual: "LSB of first byte
+# corresponds to first bit of S1" - unsigned so the sign bit doesn't
+# complicate reading it as a plain longin.
+quick_status_bin { out "ADR \$1"; out "?2"; in "%04r"; }
 
-# Quick binary read combined status + ADC (32-bit + 24-bit)
-quick_combined_bin { out "ADR \$1"; out "?3"; in "%7r"; }
+# Quick binary read combined status + high-def ADC (4 bytes + 3 bytes).
+# Read as 7 individual bytes into a waveform (one %1r applied per array
+# element per StreamDevice's waveform semantics) rather than a single
+# %7r, since a 7-byte value doesn't fit a scalar 32-bit longin/RVAL.
+quick_combined_bin { out "ADR \$1"; out "?3"; in "%1r"; }
 
 # Read ADC 100% calibration value (24-bit)
 quick_cal_bin { out "ADR \$1"; out "?4"; in "%4r"; }
@@ -215,8 +262,13 @@ quick_cal_bin { out "ADR \$1"; out "?4"; in "%4r"; }
 # Sequence Control  
 ################################################################################
 
-# Trigger programmed sequence from first position (stack 0-3)
-trigger_seq { out "ADR \$1"; out "TS %d"; }
+# Trig(ger) Start sequence - equivalent to pressing the START button.
+# This unit's manual (unlike the generic command reference) gives TS no
+# parameter at all: bare "TS<cr>". The old "TS %d" (sending the
+# SEQ_TRIGGER longout's value, e.g. "TS 0") was a syntax error the device
+# was silently rejecting, which is why WAR-set ramp targets never
+# actually started ramping.
+trigger_seq { out "ADR \$1"; out "TS"; }
 
 ################################################################################
 # Synchronization
@@ -230,11 +282,18 @@ sync_comm { out "\x10"; wait 150; out "\r"; }
 # Composite Operations for Common Use Cases
 ################################################################################
 
-# Initialize power supply for remote operation
+# Initialize power supply for remote operation. Matches the sequence
+# initializeSYS8X00.vi (the working LabVIEW control software) actually
+# uses: NASW (cancel auto-answer mode - if ASW was left on from an
+# earlier session, WA/PO+/PO-/W1-W3 would generate unsolicited replies
+# our protocol doesn't expect) and ERRC (coded errors), not ERRT. REM
+# and RS kept since they're harmless/already-verified-needed for this
+# IOC's own CMD/interlock handling.
 init_remote {
     out "ADR \$1";       # Address the power supply
     out "REM";           # Switch to remote
-    out "ERRT";          # Enable text error messages
+    out "NASW";          # Cancel auto-answer mode (as LabVIEW does)
+    out "ERRC";          # Enable coded error messages (as LabVIEW does)
     out "RS";            # Clear any latched errors
 }
 
