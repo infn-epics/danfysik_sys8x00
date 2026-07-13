@@ -248,8 +248,10 @@
     <width>120</width>
     <height>25</height>
     <items>
-      <item>Item 1</item>
-      <item>Item 2</item>
+      <item>OFF</item>
+      <item>ON</item>
+      <item>STANDBY</item>
+      <item>RESET</item>
     </items>
   </widget>
   <widget type="label" version="2.0.0">

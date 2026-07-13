@@ -58,7 +58,7 @@ record(calcout, "$(DEVICE):STATE_DECODE")
     # DCCT/supply failure, IGBT driver failure, overcurrent. Explicitly
     # excludes the polarity-status and spare bits that were wrongly
     # counted as faults before (which never reacted to anything real).
-    field(CALC, "C?5:(D?4:((B&2143354372)>0?3:(A?2:1)))")
+    field(CALC, "C?5:(D?4:((B&2143354372)>0?3:(A?1:2)))")
     field(OUT,  "$(DEVICE):STATE_RB PP")
     field(SCAN, "1 second")
 }
@@ -94,8 +94,8 @@ record(mbbo, "$(DEVICE):STATE_SP")
 {
     field(DESC, "Set UNIMAG Power Supply State")
     field(ZRST, "OFF")
-    field(ONST, "STANDBY") 
-    field(TWST, "ON")
+    field(ONST, "ON")
+    field(TWST, "STANDBY")
     field(THST, "RESET")
     field(ZRVL, "0")
     field(ONVL, "1")
@@ -113,11 +113,11 @@ record(seq, "$(DEVICE):STATE_PROCESS")
     # Link 0: OFF command → power off
     field(DOL0, "0")
     field(LNK0, "$(DEVICE):POWER_SP PP")
-    # Link 1: STANDBY command → power off (same as OFF for Danfysik)
-    field(DOL1, "0") 
+    # Link 1: ON command → power on
+    field(DOL1, "1")
     field(LNK1, "$(DEVICE):POWER_SP PP")
-    # Link 2: ON command → power on
-    field(DOL2, "1")
+    # Link 2: STANDBY command → power off (same as OFF for Danfysik)
+    field(DOL2, "0")
     field(LNK2, "$(DEVICE):POWER_SP PP")
     # Link 3: RESET command → reset interlocks
     field(DOL3, "1")
