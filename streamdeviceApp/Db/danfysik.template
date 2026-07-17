@@ -201,10 +201,15 @@ record(ao, "$(DEVICE):I_SP")
     field(OUT,  "$(DEVICE):RAMP_END_SP PP")
     field(EGU,  "A")
     field(PREC, "$(PREC=3)")
-    field(DRVL, "0")
+    # Hardware floor: the device's WAR command rejects end-current values
+    # <= 1000 raw DAC units (manual: "must be > 1000 mA"), which at this
+    # unit's confirmed DAC/10000 = Amps scaling is 0.1 A - a true 0 A
+    # setpoint is silently unreachable via WAR/TS, confirmed empirically
+    # (0 never took effect, 0.1 did). Use F/GOFF to actually reach zero.
+    field(DRVL, "0.1")
     field(DRVH, "$(IMAX)")
     field(HOPR, "$(IMAX)")
-    field(LOPR, "0")
+    field(LOPR, "0.1")
 }
 
 record(longout, "$(DEVICE):RAW_WA")
@@ -323,10 +328,14 @@ record(ao, "$(DEVICE):RAMP_END_SP")
     field(OUT,  "@danfysik.proto set_ramp_end($(ADDR)) $(PORT)")
     field(EGU,  "A")
     field(PREC, "$(PREC=3)")
-    field(DRVL, "0")
+    # Hardware floor: WAR rejects end-current <= 1000 raw DAC units
+    # (manual: "must be > 1000 mA"), i.e. 0.1 A at this unit's confirmed
+    # DAC/10000 = Amps scaling - see I_SP for details. DRVL clamps writes
+    # here instead of silently sending an unreachable WAR 000000.
+    field(DRVL, "0.1")
     field(DRVH, "$(IMAX)")
     field(HOPR, "$(IMAX)")
-    field(LOPR, "0")
+    field(LOPR, "0.1")
     # Fixed DAC<->Amps conversion (DAC/10000), not IMAX-dependent - see
     # the comment on I_SP_RB above for why. IMAX only limits DRVH/HOPR.
     field(ASLO, "1")
