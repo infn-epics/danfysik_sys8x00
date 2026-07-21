@@ -203,13 +203,13 @@ record(ao, "$(DEVICE):I_SP")
     field(PREC, "$(PREC=3)")
     # Hardware floor: the device's WAR command rejects end-current values
     # <= 1000 raw DAC units (manual: "must be > 1000 mA"), which at this
-    # unit's confirmed DAC/10000 = Amps scaling is 0.1 A - a true 0 A
-    # setpoint is silently unreachable via WAR/TS, confirmed empirically
-    # (0 never took effect, 0.1 did). Use F/GOFF to actually reach zero.
-    field(DRVL, "0.1")
+    # unit's confirmed DAC/1000 = Amps scaling is 1 A - a true 0 A
+    # setpoint is silently unreachable via WAR/TS. Use F/GOFF to actually
+    # reach zero.
+    field(DRVL, "1")
     field(DRVH, "$(IMAX)")
     field(HOPR, "$(IMAX)")
-    field(LOPR, "0.1")
+    field(LOPR, "1")
 }
 
 record(longout, "$(DEVICE):RAW_WA")
@@ -233,17 +233,18 @@ record(ai, "$(DEVICE):I_SP_RB")
     field(LOPR, "0")
     # Convert DAC value to Amps. The manual's generic formula
     # (Current = Nominal_Current * DAC/1e6, i.e. scaled by IMAX) does NOT
-    # match this unit's real behavior - confirmed empirically: the actual
-    # current is DAC/10000 regardless of what IMAX is configured to (e.g.
-    # setting IMAX=1.0 vs 100.0 for the same real current gives the same
-    # DAC register value, not a 100x different one as the IMAX-scaled
-    # formula would require). So this is now a fixed conversion, not
+    # match this unit's real behavior. So this is a fixed conversion, not
     # IMAX-dependent - IMAX only limits DRVH/HOPR (a configurable safety
     # ceiling), not the physical scaling.
+    # Fixed scale is DAC/1000, not DAC/10000 - the earlier /10000 figure
+    # was off by 10x (confirmed against real hardware: setpoint raw 99998
+    # with actual output measured at 100A -> 99998/1000 = 99.998, matching;
+    # 99998/10000 = 9.9998 does NOT, which is exactly the "IOC shows 10,
+    # real output is 100" symptom that exposed the bug).
     field(ASLO, "1")
     field(AOFF, "0")
     field(LINR, "SLOPE")
-    field(ESLO, "0.0001")
+    field(ESLO, "0.001")
     field(EOFF, "0")
 }
 
@@ -261,14 +262,14 @@ record(ai, "$(DEVICE):I_RB")
     field(SCAN, "$(SCAN_FAST=1 second)")
     field(HOPR, "$(IMAX)")
     field(LOPR, "0")
-    # ADCV's raw reading uses the same fixed 1/10000 scale as RA/WAR
-    # (confirmed empirically: RVAL=19855 against a real ~2A setpoint,
-    # matching RVAL/10000, not the manual's literal "converted to mA"
-    # description which would need /1000). No IMAX involved either way.
+    # ADCV's raw reading uses the same fixed 1/1000 scale as RA/WAR (see
+    # I_SP_RB above) - confirmed against real hardware: raw 99894 with
+    # actual output measured at ~100A -> 99894/1000 = 99.894, matching.
+    # The earlier /10000 figure was off by 10x (gave ~10 instead of ~100).
     field(ASLO, "1")
     field(AOFF, "0")
     field(LINR, "SLOPE")
-    field(ESLO, "0.0001")
+    field(ESLO, "0.001")
     field(EOFF, "0")
 }
 
@@ -329,19 +330,19 @@ record(ao, "$(DEVICE):RAMP_END_SP")
     field(EGU,  "A")
     field(PREC, "$(PREC=3)")
     # Hardware floor: WAR rejects end-current <= 1000 raw DAC units
-    # (manual: "must be > 1000 mA"), i.e. 0.1 A at this unit's confirmed
-    # DAC/10000 = Amps scaling - see I_SP for details. DRVL clamps writes
-    # here instead of silently sending an unreachable WAR 000000.
-    field(DRVL, "0.1")
+    # (manual: "must be > 1000 mA"), i.e. 1 A at this unit's confirmed
+    # DAC/1000 = Amps scaling - see I_SP_RB for details. DRVL clamps
+    # writes here instead of silently sending an unreachable WAR 000000.
+    field(DRVL, "1")
     field(DRVH, "$(IMAX)")
     field(HOPR, "$(IMAX)")
-    field(LOPR, "0.1")
-    # Fixed DAC<->Amps conversion (DAC/10000), not IMAX-dependent - see
+    field(LOPR, "1")
+    # Fixed DAC<->Amps conversion (DAC/1000), not IMAX-dependent - see
     # the comment on I_SP_RB above for why. IMAX only limits DRVH/HOPR.
     field(ASLO, "1")
     field(AOFF, "0")
     field(LINR, "SLOPE")
-    field(ESLO, "0.0001")
+    field(ESLO, "0.001")
     field(EOFF, "0")
     # setCurrent&TrigSYS8X00.vi (the working LabVIEW software) always
     # follows WAR with TS (trigger sequence) rather than using WA
@@ -359,12 +360,12 @@ record(ai, "$(DEVICE):RAMP_END_RB")
     field(SCAN, "$(SCAN_FAST=1 second)")
     field(HOPR, "$(IMAX)")
     field(LOPR, "0")
-    # Fixed DAC<->Amps conversion (DAC/10000), not IMAX-dependent - see
+    # Fixed DAC<->Amps conversion (DAC/1000), not IMAX-dependent - see
     # the comment on I_SP_RB above for why.
     field(ASLO, "1")
     field(AOFF, "0")
     field(LINR, "SLOPE")
-    field(ESLO, "0.0001")
+    field(ESLO, "0.001")
     field(EOFF, "0")
 }
 
