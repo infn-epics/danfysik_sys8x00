@@ -214,7 +214,7 @@ record(ao, "$(DEVICE):I_SP")
 
 record(longout, "$(DEVICE):RAW_WA")
 {
-    field(DESC, "Raw DAC Setpoint (direct write, no IMAX scaling)")
+    field(DESC, "Raw DAC Setpoint (no IMAX scaling)")
     field(DTYP, "stream")
     field(OUT,  "@danfysik.proto set_current($(ADDR)) $(PORT)")
     field(DRVL, "0")
@@ -559,7 +559,7 @@ record(longin, "$(DEVICE):QUICK_STATUS_RAW")
 
 record(waveform, "$(DEVICE):QUICK_COMBINED_RAW")
 {
-    field(DESC, "Quick Combined Status+Current (?3), 4+3 raw bytes")
+    field(DESC, "Quick Combined Status+Current (?3)")
     field(DTYP, "stream")
     field(INP,  "@danfysik.proto quick_combined_bin($(ADDR)) $(PORT)")
     field(FTVL, "UCHAR")
@@ -876,7 +876,7 @@ record(longin, "$(DEVICE):RAW_AD8")
 
 record(longin, "$(DEVICE):RAW_AD9")
 {
-    field(DESC, "Raw AD9 - Aux Current, Control Panel (I/In)*120")
+    field(DESC, "Raw AD9 - Aux Current, Ctrl Panel")
     field(DTYP, "stream")
     field(INP,  "@danfysik.proto get_aux_current($(ADDR)) $(PORT)")
     field(SCAN, "$(SCAN_SLOW=10 second)")
