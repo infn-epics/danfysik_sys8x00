@@ -1,4 +1,6 @@
 # Database template for Danfysik System SYS8X00 Power Supply
+# Firmware: "DANFYSIK A/S SYSTEM 8800 SB" (sys8800). For the Italian
+# "SPEC.ITALIEN" firmware (sys80it) also load danfysik_sys80it.template.
 # StreamDevice EPICS IOC
 #
 # Macro substitutions:

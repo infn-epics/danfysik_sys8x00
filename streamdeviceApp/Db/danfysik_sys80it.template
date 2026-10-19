@@ -1,0 +1,200 @@
+################################################################################
+# Danfysik "sys80it" overlay
+#
+# danfysik.template is written for the "DANFYSIK A/S SYSTEM 8800 SB"
+# firmware (sys8800). The accumulator units run an older System 8000
+# firmware with an Italian special build, here called sys80it:
+#   VER -> "SCC-995 BASEVERS. 952  MAR.19.1996"
+#          "SPEC.ITALIEN BY OH-ELECTRONICS FOR"
+# Probed on the hardware 2026-10-19 (addresses 0 and 2):
+#   - ADCV, ?1, ?2 -> "?<BEL> SYNTAX ERROR" (not implemented)
+#   - S1 is 24 characters, not 32 (System 8000 table, see below)
+#   - AD n follows the System 8000 table (manual P80303MH):
+#     0 Iout, 2 Vout, 6 delta temp "+/-DD", 8 hi-res Iout "DDDDD"
+#
+# Load this file AFTER danfysik.template (and danfysik_unimag.template),
+# with the same macros:
+#   dbLoadRecords("<TOP>/db/danfysik_sys80it.template",
+#                 "DEVICE=...,PORT=...,ADDR=...,IMAX=...,VMAX=...")
+# Records defined here are merged into the ones already loaded, so only
+# the fields that differ on sys80it are listed.
+################################################################################
+
+################################################################################
+# Analog readbacks (no ADCV on this firmware)
+################################################################################
+
+# AD 8: hi-res output current, 00000..99999 = (I/In)*100000.
+# VAL = raw * IMAX * 1e-5. Scaling not yet checked with current flowing.
+record(ai, "$(DEVICE):I_RB")
+{
+    field(INP,  "@danfysik.proto get_ad($(ADDR),8) $(PORT)")
+    field(ASLO, "$(IMAX)")
+    field(ESLO, "0.00001")
+}
+
+# Raw counterpart of I_RB (was ADCV).
+record(longin, "$(DEVICE):RAW_AD0")
+{
+    field(DESC, "Raw AD 8 - hi-res Iout (I/In)*1e5")
+    field(INP,  "@danfysik.proto get_ad($(ADDR),8) $(PORT)")
+}
+
+# AD 2: output voltage, 000..999 = (V/Vn)*100. Not yet checked with
+# voltage present.
+record(ai, "$(DEVICE):V_RB")
+{
+    field(INP,  "@danfysik.proto get_ad($(ADDR),2) $(PORT)")
+    field(ASLO, "$(VMAX)")
+    field(ESLO, "0.01")
+}
+
+# AD 6: delta temperature, signed "+/-DD" in 0.1 degC (ASLO 0.1 as in
+# danfysik.template).
+record(ai, "$(DEVICE):TEMP_DELTA_RB")
+{
+    field(INP,  "@danfysik.proto get_ad($(ADDR),6) $(PORT)")
+}
+
+# VER leaves the unit answering "**" to the next command for ~100 ms,
+# which desynchronised the whole line when polled every 5 s on six
+# units. Read it once at boot only (it never changes).
+record(stringin, "$(DEVICE):VERSION")
+{
+    field(INP,  "@danfysik.proto get_version_sys80it($(ADDR)) $(PORT)")
+    field(SCAN, "Passive")
+    field(PINI, "YES")
+}
+
+# ?2 / ?3 binary quick reads are not implemented on this firmware.
+record(longin,   "$(DEVICE):QUICK_STATUS_RAW")   { field(SCAN, "Passive") }
+record(waveform, "$(DEVICE):QUICK_COMBINED_RAW") { field(SCAN, "Passive") }
+
+################################################################################
+# S1 status: 24 characters (System 8000, manual P80303MH p.33)
+################################################################################
+# STATUS_BITS reads it with "%40B.!", so char n (1 = first) lands in
+# bit 24-n. "!" = condition present.
+#
+# char bit  meaning
+#   1   23  Main power OFF
+#   2   22  Polarity normal
+#   3   21  Polarity reversed
+#   4   20  Regulation transformer <> 0
+#  5-7 19-17 (illegible in the scanned manual - display/status, not
+#            interlocks; set on every unit at rest)
+#   8   16  Spare interlock
+#   9   15  One transistor fault
+#  10   14  Sum interlock
+#  11   13  DC overcurrent (OCP)
+#  12   12  DC overload
+#  13   11  Regulation module failure
+#  14   10  Preregulator failure
+#  15    9  Phase failure
+#  16    8  MPS waterflow failure
+#  17    7  Earth leakage failure
+#  18    6  Thermal breaker / fuses
+#  19    5  MPS overtemperature
+#  20    4  Panic button / door switch
+#  21    3  Magnet waterflow failure
+#  22    2  Magnet overtemperature
+#  23    1  MPS not ready
+#  24    0  (not listed)
+#
+# Interlock mask = bits 2..16 = 0x1FFFC = 131068.
+
+record(calc, "$(DEVICE):MAIN_PWR_ON")
+{
+    field(CALC, "!((A>>23)&1)")
+}
+
+# INTERLOCKED and STATE_DECODE (the interlock mask) live in
+# danfysik_unimag.template, so their sys80it version is in
+# danfysik_sys80it_unimag.template.
+
+################################################################################
+# Writes
+################################################################################
+# Same commands as sys8800, but each holds the line 100 ms so an error
+# reply can't be read by the next request (see cmd_sys80it in the proto).
+record(bo,      "$(DEVICE):POWER_SP")    { field(OUT, "@danfysik.proto cmd_sys80it($(ADDR),N) $(PORT)") }
+record(bo,      "$(DEVICE):POWER_OFF")   { field(OUT, "@danfysik.proto cmd_sys80it($(ADDR),F) $(PORT)") }
+record(bo,      "$(DEVICE):GOFF")        { field(OUT, "@danfysik.proto cmd_sys80it($(ADDR),GOFF) $(PORT)") }
+record(bo,      "$(DEVICE):RESET")       { field(OUT, "@danfysik.proto cmd_sys80it($(ADDR),RS) $(PORT)") }
+record(bo,      "$(DEVICE):REMOTE")      { field(OUT, "@danfysik.proto cmd_sys80it($(ADDR),REM) $(PORT)") }
+record(bo,      "$(DEVICE):RLOCK")       { field(OUT, "@danfysik.proto cmd_sys80it($(ADDR),RLOCK) $(PORT)") }
+record(bo,      "$(DEVICE):UNLOCK")      { field(OUT, "@danfysik.proto cmd_sys80it($(ADDR),UNLOCK) $(PORT)") }
+record(bo,      "$(DEVICE):POL_POS")     { field(OUT, "@danfysik.proto cmd_sys80it($(ADDR),PO+) $(PORT)") }
+record(bo,      "$(DEVICE):POL_NEG")     { field(OUT, "@danfysik.proto cmd_sys80it($(ADDR),PO-) $(PORT)") }
+record(bo,      "$(DEVICE):ERROR_TEXT")  { field(OUT, "@danfysik.proto cmd_sys80it($(ADDR),ERRT) $(PORT)") }
+record(bo,      "$(DEVICE):ERROR_CODE")  { field(OUT, "@danfysik.proto cmd_sys80it($(ADDR),ERRC) $(PORT)") }
+record(bo,      "$(DEVICE):NO_ANSWER")   { field(OUT, "@danfysik.proto cmd_sys80it($(ADDR),NASW) $(PORT)") }
+record(bo,      "$(DEVICE):INIT_REMOTE") { field(OUT, "@danfysik.proto init_remote_sys80it($(ADDR)) $(PORT)") }
+record(longout, "$(DEVICE):RAW_WA")      { field(OUT, "@danfysik.proto set_current_sys80it($(ADDR)) $(PORT)") }
+record(ao,      "$(DEVICE):RAMP_END_SP") { field(OUT, "@danfysik.proto set_ramp_end_sys80it($(ADDR)) $(PORT)") }
+record(ao,      "$(DEVICE):RAMP_RATE_SP"){ field(OUT, "@danfysik.proto set_ramp_speed_sys80it($(ADDR)) $(PORT)") }
+
+# System 8000 "TS" is Trig Sequence and needs a stack number ("TS 0".."TS 3",
+# a pre-programmed sequence); a bare "TS" is a SYNTAX ERROR. WAR ("Write
+# Actual Ramp end - set output current") starts the ramp by itself, so the
+# trigger that follows every RAMP_END_SP write is a no-op here.
+record(longout, "$(DEVICE):SEQ_TRIGGER")
+{
+    field(DTYP, "Soft Channel")
+    field(OUT,  "")
+}
+
+################################################################################
+# Comms health
+################################################################################
+
+# S1 (STATUS_BITS) is read every cycle and parses fine on sys80it. Same
+# comms-only alarm check as in danfysik.template.
+record(calc, "$(DEVICE):CONNECTED")
+{
+    field(INPA, "$(DEVICE):STATUS_BITS.STAT")
+}
+
+################################################################################
+# Bus load
+################################################################################
+# Six sys80it units share one serial line, and at 1 second every record
+# the replies fall behind the 2 s timeout, so late answers get read by
+# the next request (e.g. POL_NORMAL reading "5"). Only STATUS_BITS,
+# I_SP_RB, I_RB and POL_NORMAL stay at SCAN_FAST; settings/diagnostics
+# poll at SCAN_SLOW. STATUS and POL_RB repeat the S1 / PO queries of
+# STATUS_BITS / POL_NORMAL.
+record(stringin, "$(DEVICE):CTRL_MODE")    { field(SCAN, "$(SCAN_SLOW=10 second)") }
+record(stringin, "$(DEVICE):CTRL_STATE")   { field(SCAN, "$(SCAN_SLOW=10 second)") }
+record(stringin, "$(DEVICE):STATUS")       { field(SCAN, "$(SCAN_SLOW=10 second)") }
+record(stringin, "$(DEVICE):POL_RB")       { field(SCAN, "$(SCAN_SLOW=10 second)") }
+record(ai,       "$(DEVICE):V_RB")         { field(SCAN, "$(SCAN_SLOW=10 second)") }
+record(ai,       "$(DEVICE):RAMP_END_RB")  { field(SCAN, "$(SCAN_SLOW=10 second)") }
+record(ai,       "$(DEVICE):RAMP_RATE_RB") { field(SCAN, "$(SCAN_SLOW=10 second)") }
+
+# The line carries ~19 transactions/s (each ~45 ms, mostly controller
+# latency), shared by all units. Diagnostics that duplicate another
+# record's query (AD 8 was read by five records) or read channels with
+# no meaning on sys80it poll at SCAN_DIAG (default Passive: read on demand;
+# menuScan has nothing slower than 10 s).
+#   I_HIRES_RB, RAW_AD0/6/8 = AD 8 (I_RB)   RAW_RA = RA (I_SP_RB)
+#   TESLA_RB, RAW_AD1 = AD 1 (no Tesla probe, reads 0)
+#   RAW_AD2..5/7/9, VCE_RB, P15V/M15V/P5V_RB, MAX_RB = housekeeping
+record(ai,     "$(DEVICE):I_HIRES_RB") { field(SCAN, "$(SCAN_DIAG=Passive)") }
+record(ai,     "$(DEVICE):TESLA_RB")   { field(SCAN, "$(SCAN_DIAG=Passive)") }
+record(ai,     "$(DEVICE):VCE_RB")     { field(SCAN, "$(SCAN_DIAG=Passive)") }
+record(ai,     "$(DEVICE):P15V_RB")    { field(SCAN, "$(SCAN_DIAG=Passive)") }
+record(ai,     "$(DEVICE):M15V_RB")    { field(SCAN, "$(SCAN_DIAG=Passive)") }
+record(ai,     "$(DEVICE):P5V_RB")     { field(SCAN, "$(SCAN_DIAG=Passive)") }
+record(longin, "$(DEVICE):MAX_RB")     { field(SCAN, "$(SCAN_DIAG=Passive)") }
+record(longin, "$(DEVICE):RAW_RA")     { field(SCAN, "$(SCAN_DIAG=Passive)") }
+record(longin, "$(DEVICE):RAW_AD0")    { field(SCAN, "$(SCAN_DIAG=Passive)") }
+record(longin, "$(DEVICE):RAW_AD1")    { field(SCAN, "$(SCAN_DIAG=Passive)") }
+record(longin, "$(DEVICE):RAW_AD2")    { field(SCAN, "$(SCAN_DIAG=Passive)") }
+record(longin, "$(DEVICE):RAW_AD3")    { field(SCAN, "$(SCAN_DIAG=Passive)") }
+record(longin, "$(DEVICE):RAW_AD4")    { field(SCAN, "$(SCAN_DIAG=Passive)") }
+record(longin, "$(DEVICE):RAW_AD5")    { field(SCAN, "$(SCAN_DIAG=Passive)") }
+record(longin, "$(DEVICE):RAW_AD6")    { field(SCAN, "$(SCAN_DIAG=Passive)") }
+record(longin, "$(DEVICE):RAW_AD7")    { field(SCAN, "$(SCAN_DIAG=Passive)") }
+record(longin, "$(DEVICE):RAW_AD8")    { field(SCAN, "$(SCAN_DIAG=Passive)") }
+record(longin, "$(DEVICE):RAW_AD9")    { field(SCAN, "$(SCAN_DIAG=Passive)") }

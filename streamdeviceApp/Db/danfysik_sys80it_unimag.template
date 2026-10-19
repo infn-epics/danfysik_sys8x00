@@ -1,0 +1,21 @@
+################################################################################
+# Danfysik "sys80it" overlay for danfysik_unimag.template
+#
+# The UNIMAG records that decode S1 interlocks, with the System 8000
+# 24-character S1 table (see danfysik_sys80it.template for the bit list).
+# Load AFTER danfysik_unimag.template:
+#   dbLoadRecords("<TOP>/db/danfysik_sys80it_unimag.template", "DEVICE=...")
+################################################################################
+
+# Interlock mask = S1 chars 8..22 = bits 2..16 = 0x1FFFC = 131068.
+
+record(calc, "$(DEVICE):INTERLOCKED")
+{
+    field(CALC, "(A&131068)>0")
+}
+
+# Same as danfysik_unimag.template, with the sys80it interlock mask.
+record(calcout, "$(DEVICE):STATE_DECODE")
+{
+    field(CALC, "E=0?5:(C?9:(D?8:((B&131068)>0?3:(A?1:2))))")
+}

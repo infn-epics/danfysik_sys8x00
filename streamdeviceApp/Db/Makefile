@@ -15,6 +15,8 @@ DB += danfysik.template
 DB += danfysik.proto
 DB += danfysik.substitutions
 DB += danfysik_unimag.template
+DB += danfysik_sys80it.template
+DB += danfysik_sys80it_unimag.template
 
 #----------------------------------------------------
 # If <anyname>.db template is not named <anyname>*.template add

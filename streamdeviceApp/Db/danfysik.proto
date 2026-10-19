@@ -116,6 +116,12 @@ get_ramp_speed { out "ADR \$1"; out "RR"; in "%d"; }
 # not a DAC/percentage value - no IMAX-based scaling needed.
 get_actual_current { out "ADR \$1"; out "ADCV"; in "%d"; }
 
+# Generic "AD n" read: get_ad(addr,channel). Used by the sys80it overlay,
+# whose firmware has no ADCV and follows the System 8000 AD table
+# (P80303MH): 0 Iout, 2 Vout, 6 delta temp (signed), 8 hi-res Iout
+# (5 digits). Reply is the bare value, e.g. "00000" or "-01".
+get_ad { out "ADR \$1"; out "AD \$2"; in "%d"; }
+
 # SUSPECT - not available on this unit. This unit's real AD table
 # (manual p.33) has NO "Tesla field" channel at all; channel 1 is
 # actually "S ac voltage" (3-phase mains input, phase S). Kept only so
@@ -235,6 +241,27 @@ get_info { out "ADR \$1"; out "PRINT"; in "%80c"; }
 # Reply starts with a blank line (bare CR) before the actual text line,
 # so the first "in" consumes and discards it.
 get_version { out "ADR \$1"; out "VER"; in ""; in "%80c"; }
+
+# sys80it: VER answers two text lines ("SCC-995 BASEVERS. 952 ..." and
+# "SPEC.ITALIEN BY OH-ELECTRONICS FOR"), and for a short while after
+# them the unit answers "**" to the next command, which shifts every
+# later reply by one. Read both lines and hold the line 300 ms (>= 100 ms
+# was clean on the hardware) before releasing it.
+get_version_sys80it { out "ADR \$1"; out "VER"; in "%*80c"; in "%80c"; wait 300; }
+
+# sys80it writes. These commands answer only on error, ~40 ms later; the
+# next request would read that late "?<BEL>..." as its own reply. Holding
+# the line 100 ms lets it arrive first, so StreamDevice discards it before
+# the next write.
+#   cmd_sys80it(addr,command): N, F, RS, GOFF, REM, RLOCK, PO+, PO-, ERRT, ...
+cmd_sys80it            { out "ADR \$1"; out "\$2"; wait 100; }
+set_current_sys80it    { out "ADR \$1"; out "WA %06d"; wait 100; }
+set_ramp_end_sys80it   { out "ADR \$1"; out "WAR %06d"; wait 100; }
+set_ramp_speed_sys80it { out "ADR \$1"; out "WR %03d"; wait 100; }
+init_remote_sys80it {
+    out "ADR \$1"; out "REM"; wait 50; out "NASW"; wait 50;
+    out "ERRC"; wait 50; out "RS"; wait 100;
+}
 
 ################################################################################
 # Binary Quick Read Commands (for high-speed monitoring)
