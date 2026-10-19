@@ -784,8 +784,10 @@ record(longout, "$(DEVICE):SEQ_TRIGGER")
 record(calc, "$(DEVICE):CONNECTED")
 {
     field(DESC, "Connection Status")
-    # I_RB.STAT is 0 (NO_ALARM) exactly when the last comms read succeeded
-    field(CALC, "A=0")
+    # Only comms alarms on I_RB count as disconnected: READ(1), WRITE(2),
+    # COMM(9), TIMEOUT(10), UDF(17, never read yet). A reply that arrives
+    # but fails to parse (CALC) or a limit alarm is not a comms fault.
+    field(CALC, "A#1&&A#2&&A#9&&A#10&&A#17")
     field(INPA, "$(DEVICE):I_RB.STAT")
     field(SCAN, "$(SCAN_FAST=1 second)")
 }

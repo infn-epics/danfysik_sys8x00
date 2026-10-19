@@ -73,7 +73,7 @@ Faults win over `ST_NOT_REACHED`, which wins over `SP_NOT_REACHED`. Values from 
 additional, device specific states. `STATE_SP` accepts `OFF`, `ON`, `STANDBY` and `RESET`.
 
 Device specific states: `8 RAMPING` and `9 POL_CHANGE` (the polarity is being changed).
-`FAULT` from the model specific interlock bits, `CONN_FAULT` when the last read failed
+`FAULT` from the model specific interlock bits, `CONN_FAULT` when the last read hit a comms alarm (READ/WRITE/COMM/TIMEOUT/UDF)
 (`CONNECTED` = 0). `AT_SETPOINT` now compares `CURR_DIFF` with `SET_TOLERANCE`.
 
 ### UNIMAG configuration
