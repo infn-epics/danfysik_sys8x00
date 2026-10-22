@@ -24,19 +24,20 @@
 # Analog readbacks (no ADCV on this firmware)
 ################################################################################
 
-# AD 8: hi-res output current, 00000..99999 = (I/In)*100000.
-# VAL = raw * IMAX * 1e-5. Scaling not yet checked with current flowing.
+# AD 8: hi-res output current in 10 mA units (00000..99999). Measured on
+# QUAA*001 (IMAX 315 A) 2026-10-22: RA 5.000 A -> 491..499, 1.000 A ->
+# 93..95. Not yet checked on a unit with a different IMAX (DHSA*001).
 record(ai, "$(DEVICE):I_RB")
 {
     field(INP,  "@danfysik.proto get_ad($(ADDR),8) $(PORT)")
-    field(ASLO, "$(IMAX)")
-    field(ESLO, "0.00001")
+    field(ASLO, "0.01")
+    field(ESLO, "1")
 }
 
 # Raw counterpart of I_RB (was ADCV).
 record(longin, "$(DEVICE):RAW_AD0")
 {
-    field(DESC, "Raw AD 8 - hi-res Iout (I/In)*1e5")
+    field(DESC, "Raw AD 8 - hi-res Iout, 10 mA units")
     field(INP,  "@danfysik.proto get_ad($(ADDR),8) $(PORT)")
 }
 
@@ -134,14 +135,13 @@ record(longout, "$(DEVICE):RAW_WA")      { field(OUT, "@danfysik.proto set_curre
 record(ao,      "$(DEVICE):RAMP_END_SP") { field(OUT, "@danfysik.proto set_ramp_end_sys80it($(ADDR)) $(PORT)") }
 record(ao,      "$(DEVICE):RAMP_RATE_SP"){ field(OUT, "@danfysik.proto set_ramp_speed_sys80it($(ADDR)) $(PORT)") }
 
-# System 8000 "TS" is Trig Sequence and needs a stack number ("TS 0".."TS 3",
-# a pre-programmed sequence); a bare "TS" is a SYNTAX ERROR. WAR ("Write
-# Actual Ramp end - set output current") starts the ramp by itself, so the
-# trigger that follows every RAMP_END_SP write is a no-op here.
+# WAR only stores the ramp end; a bare "TS" starts the ramp to it, as on
+# sys8800 (tested on QUAA*001: 0 -> 5 A in ~1.6 s at RR 010). WA is a
+# SYNTAX ERROR on this firmware. Never send "TS n": that runs a stored
+# sequence stack.
 record(longout, "$(DEVICE):SEQ_TRIGGER")
 {
-    field(DTYP, "Soft Channel")
-    field(OUT,  "")
+    field(OUT, "@danfysik.proto cmd_sys80it($(ADDR),TS) $(PORT)")
 }
 
 ################################################################################
