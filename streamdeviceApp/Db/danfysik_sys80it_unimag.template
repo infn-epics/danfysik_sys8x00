@@ -7,15 +7,16 @@
 #   dbLoadRecords("<TOP>/db/danfysik_sys80it_unimag.template", "DEVICE=...")
 ################################################################################
 
-# Interlock mask = S1 chars 8..22 = bits 2..16 = 0x1FFFC = 131068.
+# Interlock mask = S1 chars 8..22 = bits 2..16 = 0x1FFFC = 131068,
+# minus the FAULT_IGNORE bits (see danfysik_unimag.template).
 
 record(calc, "$(DEVICE):INTERLOCKED")
 {
-    field(CALC, "(A&131068)>0")
+    field(CALC, "(A&131068&~B)>0")
 }
 
 # Same as danfysik_unimag.template, with the sys80it interlock mask.
 record(calcout, "$(DEVICE):STATE_DECODE")
 {
-    field(CALC, "E=0?5:(C?9:(D?8:((B&131068)>0?3:(A?1:2))))")
+    field(CALC, "E=0?5:(C?9:(D?8:((B&131068&~F)>0?3:(A?1:2))))")
 }

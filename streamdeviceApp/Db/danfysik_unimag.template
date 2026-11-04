@@ -59,7 +59,8 @@ record(calcout, "$(DEVICE):STATE_DECODE")
     # excludes the polarity-status and spare bits that were wrongly
     # counted as faults before (which never reacted to anything real).
     field(INPE, "$(DEVICE):CONNECTED CP")        # 0 = communication error
-    field(CALC, "E=0?5:(C?9:(D?8:((B&2143354372)>0?3:(A?1:2))))")
+    field(INPF, "$(DEVICE):FAULT_IGNORE CP")     # masked (ignored) S1 bits
+    field(CALC, "E=0?5:(C?9:(D?8:((B&2143354372&~F)>0?3:(A?1:2))))")
     field(OUT,  "$(DEVICE):STATE_BASE PP")
     field(SCAN, "1 second")
 }
@@ -210,7 +211,19 @@ record(calc, "$(DEVICE):INTERLOCKED")
     # comment in danfysik.template and the matching mask comment on
     # STATE_DECODE above.
     field(INPA, "$(DEVICE):STATUS_BITS CP")
-    field(CALC, "(A&2143354372)>0")
+    field(INPB, "$(DEVICE):FAULT_IGNORE CP")
+    field(CALC, "(A&2143354372&~B)>0")
+}
+
+# S1 interlock bits to ignore (bit n = STATUS_BITS bit n, see the table in
+# danfysik.template / danfysik_sys80it.template). Set bits never raise
+# INTERLOCKED or STATE_RB=FAULT; STATUS / STATUS_BITS still show them raw.
+# For a known broken or unwired interlock input. Live-settable.
+record(longout, "$(DEVICE):FAULT_IGNORE")
+{
+    field(DESC, "Ignored S1 interlock bits")
+    field(VAL,  "$(FAULT_IGNORE=0)")
+    field(PINI, "YES")
 }
 
 # Ready for operation
