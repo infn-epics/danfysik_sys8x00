@@ -531,3 +531,27 @@ record(calc, "$(DEVICE):ST_LAST") {
     field(PINI, "YES")
     field(FLNK, "$(DEVICE):STATE_FINAL")
 }
+
+# ---------- reset ----------
+# RESET (written directly or by STATE_SP=RESET through STATE_PROCESS) also
+# clears SP_NOT_REACHED and ST_NOT_REACHED: both watchdog counters go back
+# to 0, so the timeout restarts and the flag comes back only if the
+# setpoint / state is still unreached SET_TIMEOUT_S later.
+# (Redefines the RESET record of danfysik.template, adding the FLNK.)
+record(bo, "$(DEVICE):RESET") {
+    field(FLNK, "$(DEVICE):WDOG_CLEAR")
+}
+
+record(dfanout, "$(DEVICE):WDOG_CLEAR") {
+    field(DESC, "Clear the NOT_REACHED watchdogs")
+    field(VAL,  "0")
+    field(OUTA, "$(DEVICE):SP_WDOG.VAL NPP")
+    field(OUTB, "$(DEVICE):ST_WDOG.VAL NPP")
+    field(FLNK, "$(DEVICE):WDOG_CLEAR_FAN")
+}
+
+record(fanout, "$(DEVICE):WDOG_CLEAR_FAN") {
+    field(DESC, "Re-evaluate the NOT_REACHED flags")
+    field(LNK1, "$(DEVICE):SP_NOT_REACHED")
+    field(LNK2, "$(DEVICE):ST_NOT_REACHED")
+}
