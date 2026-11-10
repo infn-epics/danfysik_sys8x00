@@ -544,6 +544,66 @@ record(calc, "$(DEVICE):ST_LAST") {
     field(FLNK, "$(DEVICE):STATE_FINAL")
 }
 
+# ---------- UNIMAG state machine ----------
+# STATE_SM tells what the supply is doing. The SNL program writes its current
+# sequence step to STATE_SM_STEP, but it goes back to idle as soon as the
+# commands are sent: while the supply is still ramping the readback tells
+# GOTOSET, and a state command not applied yet tells GOTOSTATE.
+#   0 READY | 1 GOTOSET | 2 GOTOSTATE | 3 GOZERO | 4 GOPOS | 5 GONEG
+#   6 SPNOTSET (MINOR, = SP_NOT_REACHED) | 7 STATENOTSET (MAJOR, = ST_NOT_REACHED)
+record(longout, "$(DEVICE):STATE_SM_STEP") {
+    field(DESC, "SNL sequence step")
+    field(VAL,  "0")
+    field(FLNK, "$(DEVICE):STATE_SM_CALC")
+}
+
+record(calc, "$(DEVICE):SP_BUSY") {
+    field(DESC, "Going to the setpoint")
+    field(INPA, "$(DEVICE):SP_ERR NPP NMS")
+    field(INPB, "$(DEVICE):SET_TOLERANCE NPP NMS")
+    field(INPC, "$(DEVICE):ZERO_TOLERANCE NPP NMS")
+    field(INPD, "$(DEVICE):CURRENT_SP NPP NMS")
+    field(INPE, "$(DEVICE):SP_ARMED NPP NMS")
+    field(INPF, "$(DEVICE):STATE_BASE NPP NMS")
+    field(CALC, "E&&B>0&&(F=1||F>=8)&&A>(ABS(D)<=C?C:B)")
+}
+
+record(calcout, "$(DEVICE):STATE_SM_CALC") {
+    field(DESC, "Compute STATE_SM")
+    field(SCAN, "1 second")
+    field(INPA, "$(DEVICE):STATE_SM_STEP NPP NMS")
+    field(INPB, "$(DEVICE):ST_NOT_REACHED NPP NMS")
+    field(INPC, "$(DEVICE):SP_NOT_REACHED NPP NMS")
+    field(INPD, "$(DEVICE):ST_WDOG NPP NMS")
+    field(INPE, "$(DEVICE):SP_BUSY PP NMS")
+    field(CALC, "B?7:(C?6:(A?A:(D>0?2:(E?1:0))))")
+    field(OUT,  "$(DEVICE):STATE_SM PP")
+    field(OOPT, "Every Time")
+}
+
+record(mbbi, "$(DEVICE):STATE_SM") {
+    field(DESC, "UNIMAG state machine")
+    field(SCAN, "Passive")
+    field(ZRVL, "0")
+    field(ZRST, "READY")
+    field(ONVL, "1")
+    field(ONST, "GOTOSET")
+    field(TWVL, "2")
+    field(TWST, "GOTOSTATE")
+    field(THVL, "3")
+    field(THST, "GOZERO")
+    field(FRVL, "4")
+    field(FRST, "GOPOS")
+    field(FVVL, "5")
+    field(FVST, "GONEG")
+    field(SXVL, "6")
+    field(SXST, "SPNOTSET")
+    field(SXSV, "MINOR")
+    field(SVVL, "7")
+    field(SVST, "STATENOTSET")
+    field(SVSV, "MAJOR")
+}
+
 # ---------- reset ----------
 # RESET (written directly or by STATE_SP=RESET through STATE_PROCESS) also
 # clears SP_NOT_REACHED and ST_NOT_REACHED: both watchdog counters go back

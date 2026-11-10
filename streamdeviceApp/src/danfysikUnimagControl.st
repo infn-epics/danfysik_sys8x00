@@ -60,6 +60,10 @@ int cmd_reset;
 assign cmd_reset to "{device}:RESET";
 monitor cmd_reset;
 
+/* Sequence step published to STATE_SM (see danfysik_unimag.template) */
+int sm_step;
+assign sm_step to "{device}:STATE_SM_STEP";
+
 /* Event flags */
 evflag current_sp_ef;
 sync current_sp current_sp_ef;
@@ -80,6 +84,14 @@ int timeout_counter;
 #define POL_POSITIVE 1
 #define POL_NEGATIVE 2
 
+/* STATE_SM values */
+#define SM_READY     0
+#define SM_GOTOSET   1
+#define SM_GOTOSTATE 2
+#define SM_GOZERO    3
+#define SM_GOPOS     4
+#define SM_GONEG     5
+
 ss unimag_control {
     state INIT {
         /* SNL fires the initial "monitor" callback (channel connect,
@@ -97,6 +109,11 @@ ss unimag_control {
     }
 
     state IDLE {
+        entry {
+            sm_step = SM_READY;
+            pvPut(sm_step);
+        }
+
         when (efTestAndClear(current_sp_ef)) {
             /* New current setpoint received */
             requested_current = current_sp;
@@ -155,6 +172,8 @@ ss unimag_control {
     
     state RAMP_TO_ZERO {
         entry {
+            sm_step = SM_GOZERO;
+            pvPut(sm_step);
             /* Set current to zero and start ramp */
             curr_set = 0.0;
             pvPut(curr_set);
@@ -184,6 +203,8 @@ ss unimag_control {
     
     state GO_STANDBY {
         entry {
+            sm_step = SM_GOTOSTATE;
+            pvPut(sm_step);
             /* cmd_standby is aliased to POWER_SP (0=Off/1=On) - writing 1
                here sent "N" (power ON) instead of the intended "F"
                (standby/off). */
@@ -218,6 +239,8 @@ ss unimag_control {
     
     state CHANGE_POLARITY {
         entry {
+            sm_step = (requested_polarity == POL_POSITIVE) ? SM_GOPOS : SM_GONEG;
+            pvPut(sm_step);
             /* Open contactors first (POWER_SP=0 -> "F"). Same
                1-instead-of-0 bug as GO_STANDBY - this used to send "N"
                (power ON) instead of actually opening the contactors. */
@@ -274,6 +297,8 @@ ss unimag_control {
     
     state GO_POWERON {
         entry {
+            sm_step = SM_GOTOSTATE;
+            pvPut(sm_step);
             cmd_power_on = 1;
             pvPut(cmd_power_on);
             timeout_counter = 0;
@@ -303,6 +328,8 @@ ss unimag_control {
     
     state SET_CURRENT {
         entry {
+            sm_step = SM_GOTOSET;
+            pvPut(sm_step);
             /* Set the absolute current value */
             curr_set = abs_current;
             pvPut(curr_set);
@@ -324,6 +351,8 @@ ss unimag_control {
     
     state SET_CURRENT_DIRECT {
         entry {
+            sm_step = SM_GOTOSET;
+            pvPut(sm_step);
             /* No polarity change needed, check if we need to power on */
             pvGet(stat_power_on);
         }
@@ -342,6 +371,11 @@ ss unimag_control {
     }
     
     state WAIT_POWERON_DIRECT {
+        entry {
+            sm_step = SM_GOTOSTATE;
+            pvPut(sm_step);
+        }
+
         when (stat_power_on) {
             curr_set = abs_current;
             pvPut(curr_set);
@@ -353,6 +387,11 @@ ss unimag_control {
     }
     
     state RAMP_DIRECT {
+        entry {
+            sm_step = SM_GOTOSET;
+            pvPut(sm_step);
+        }
+
         when (delay(0.5)) {
             cmd_start_ramp = 1;
             pvPut(cmd_start_ramp);

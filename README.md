@@ -76,6 +76,12 @@ Device specific states: `8 RAMPING` and `9 POL_CHANGE` (the polarity is being ch
 `FAULT` from the model specific interlock bits, `CONN_FAULT` when the last read hit a comms alarm (READ/WRITE/COMM/TIMEOUT/UDF)
 (`CONNECTED` = 0). `AT_SETPOINT` now compares `CURR_DIFF` with `SET_TOLERANCE`.
 
+### UNIMAG state machine (`STATE_SM`)
+
+`STATE_SM` tells what the supply is doing: `0 READY`, `1 GOTOSET`, `2 GOTOSTATE`, `3 GOZERO`,
+`4 GOPOS`, `5 GONEG`, `6 SPNOTSET` (MINOR, same as `SP_NOT_REACHED`) and `7 STATENOTSET` (MAJOR,
+same as `ST_NOT_REACHED`). Commands are not sent again: this IOC has no `RETRY`.
+
 ### UNIMAG configuration
 
 | Parameter | PV | Description | Default | Units |
