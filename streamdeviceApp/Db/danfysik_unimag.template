@@ -451,6 +451,17 @@ record(calc, "$(DEVICE):SP_ERR") {
     field(PREC, "3")
 }
 
+# Armed by the first setpoint change after boot: CURRENT_SP boots as 0 and is
+# not read from the supply, so a supply left running must not raise
+# SP_NOT_REACHED just because of that.
+record(calc, "$(DEVICE):SP_ARMED") {
+    field(DESC, "Setpoint command seen since boot")
+    field(INPA, "$(DEVICE):CURRENT_SP NPP NMS")
+    field(INPB, "$(DEVICE):SP_LAST NPP NMS")
+    field(INPC, "$(DEVICE):SP_ARMED NPP NMS")
+    field(CALC, "C||A!=B")
+}
+
 # Seconds the setpoint has been unreached without progress. Only counts
 # while the supply is ON (or in a device specific active state).
 record(calc, "$(DEVICE):SP_WDOG") {
@@ -464,7 +475,8 @@ record(calc, "$(DEVICE):SP_WDOG") {
     field(INPF, "$(DEVICE):CURRENT_SP NPP NMS")
     field(INPG, "$(DEVICE):SP_LAST NPP NMS")
     field(INPH, "$(DEVICE):STATE_BASE NPP NMS")
-    field(CALC, "D<=0||H!=1&&H<8?0:(A<=(ABS(F)<=E?E:D)?0:(F!=G||A<C-D/20?0:B+1))")
+    field(INPI, "$(DEVICE):SP_ARMED PP NMS")
+    field(CALC, "!I||D<=0||H!=1&&H<8?0:(A<=(ABS(F)<=E?E:D)?0:(F!=G||A<C-D/20?0:B+1))")
     field(FLNK, "$(DEVICE):SP_NOT_REACHED")
 }
 
