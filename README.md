@@ -78,7 +78,9 @@ Device specific states: `8 RAMPING` and `9 POL_CHANGE` (the polarity is being ch
 
 `STATE_SM` tells what the supply is doing: `0 READY`, `1 GOTOSET`, `2 GOTOSTATE`, `3 GOZERO`,
 `4 GOPOS`, `5 GONEG`, `6 SPNOTSET` (MINOR, from `SP_NOT_REACHED`) and `7 STATENOTSET` (MAJOR,
-from `ST_NOT_REACHED`). Commands are not sent again: this IOC has no `RETRY`.
+from `ST_NOT_REACHED`). `GOZERO`, `GOPOS` and `GONEG` come from the polarity change sequence,
+`GOTOSET` / `GOTOSTATE` also while the supply is still ramping after the commands are sent.
+Commands are not sent again: this IOC has no `RETRY`. `RESET` clears `SPNOTSET` / `STATENOTSET`.
 
 ### UNIMAG configuration
 
@@ -90,6 +92,7 @@ from `ST_NOT_REACHED`). Commands are not sent again: this IOC has no `RETRY`.
 
 They are db macros (same names) and live PVs, so they can also be changed at runtime. The
 timeout restarts whenever the readback gets closer to the setpoint, on a new setpoint and on a
-new state command. The setpoint check only runs while the supply is `ON`, and the state check
-is armed by the first `STATE_SP` command after boot, so a supply left running is not reported.
+new state command. The setpoint check only runs while the supply is `ON`. It is armed by the first `CURRENT_SP`
+written after boot, the state check by the first `STATE_SP` command, so a supply left running is
+not reported.
 `SP_NOT_REACHED` and `ST_NOT_REACHED` (and `SP_ERR`, `SP_WDOG`, `ST_WDOG`) are readable PVs.
