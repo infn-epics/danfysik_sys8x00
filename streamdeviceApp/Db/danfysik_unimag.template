@@ -83,12 +83,6 @@ record(mbbi, "$(DEVICE):STATE_RB") {
     field(FVVL, "5")
     field(FVST, "CONN_FAULT")
     field(FVSV, "MAJOR")
-    field(SXVL, "6")
-    field(SXST, "SP_NOT_REACHED")
-    field(SXSV, "MINOR")
-    field(SVVL, "7")
-    field(SVST, "ST_NOT_REACHED")
-    field(SVSV, "MAJOR")
     field(EIVL, "8")
     field(EIST, "RAMPING")
     field(EISV, "MINOR")
@@ -373,14 +367,12 @@ record(mbbo, "$(DEVICE):DEBUG")
 # STATE_RB (aligned across the UNIMAG power-supply IOCs):
 #   0 OFF | 1 ON | 2 STANDBY | 3 FAULT (MAJOR) | 4 EXT_INTLK (MAJOR)
 #   5 CONN_FAULT (MAJOR, communication errors)
-#   6 SP_NOT_REACHED (MINOR, current setpoint not reached)
-#   7 ST_NOT_REACHED (MAJOR, commanded state not reached)
 #   8.. additional, device specific states
 #
 # The device logic decodes the plain state (0-5 and the device specific
-# ones) into STATE_BASE. The watchdogs below add 6 and 7 on top of it, and
-# STATE_FINAL selects what STATE_RB shows: faults win, then ST_NOT_REACHED,
-# then SP_NOT_REACHED.
+# ones) into STATE_BASE, which STATE_FINAL copies to STATE_RB. A setpoint or
+# state not reached is a software state: the watchdogs below report it in
+# STATE_SM (SPNOTSET / STATENOTSET), STATE_RB keeps the device state.
 #
 # Configuration (db macros, also live PVs):
 #   SET_TOLERANCE  (A) readback within this of CURRENT_SP counts as reached
@@ -428,13 +420,11 @@ record(ao, "$(DEVICE):STATE_BASE") {
     field(FLNK, "$(DEVICE):STATE_FINAL")
 }
 
-# Final state: faults win, then ST_NOT_REACHED, then SP_NOT_REACHED
+# Device state to STATE_RB
 record(calcout, "$(DEVICE):STATE_FINAL") {
-    field(DESC, "Final state incl. NOT_REACHED")
+    field(DESC, "Final state")
     field(INPA, "$(DEVICE):STATE_BASE NPP NMS")
-    field(INPB, "$(DEVICE):ST_NOT_REACHED NPP NMS")
-    field(INPC, "$(DEVICE):SP_NOT_REACHED NPP NMS")
-    field(CALC, "(A>=3&&A<=5)?A:(B?7:(C?6:A))")
+    field(CALC, "A")
     field(OUT,  "$(DEVICE):STATE_RB PP")
     field(OOPT, "Every Time")
 }
@@ -554,7 +544,8 @@ record(calc, "$(DEVICE):ST_LAST") {
 record(longout, "$(DEVICE):STATE_SM_STEP") {
     field(DESC, "SNL sequence step")
     field(VAL,  "0")
-    field(FLNK, "$(DEVICE):STATE_SM_CALC")
+    # STATE_SM_CALC is scanned: a FLNK would not process it, a write to PROC does
+    field(OUT,  "$(DEVICE):STATE_SM_CALC.PROC")
 }
 
 record(calc, "$(DEVICE):SP_BUSY") {

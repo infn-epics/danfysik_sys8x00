@@ -66,11 +66,9 @@ This IOC provides complete control and monitoring for the Danfysik System SYS8X0
 | 3 | `FAULT` | MAJOR | Power supply fault |
 | 4 | `EXT_INTLK` | MAJOR | External interlock |
 | 5 | `CONN_FAULT` | MAJOR | Communication errors (the status read fails) |
-| 6 | `SP_NOT_REACHED` | MINOR | Current setpoint not reached |
-| 7 | `ST_NOT_REACHED` | MAJOR | State not reached (UNIMAG failure) |
 
-Faults win over `ST_NOT_REACHED`, which wins over `SP_NOT_REACHED`. Values from 8 up are
-additional, device specific states. `STATE_SP` accepts `OFF`, `ON`, `STANDBY` and `RESET`.
+Values from 8 up are additional, device specific states. A setpoint or state not reached is
+reported by `STATE_SM` (`SPNOTSET` / `STATENOTSET`), not by `STATE_RB`. `STATE_SP` accepts `OFF`, `ON`, `STANDBY` and `RESET`.
 
 Device specific states: `8 RAMPING` and `9 POL_CHANGE` (the polarity is being changed).
 `FAULT` from the model specific interlock bits, `CONN_FAULT` when the last read hit a comms alarm (READ/WRITE/COMM/TIMEOUT/UDF)
@@ -79,8 +77,8 @@ Device specific states: `8 RAMPING` and `9 POL_CHANGE` (the polarity is being ch
 ### UNIMAG state machine (`STATE_SM`)
 
 `STATE_SM` tells what the supply is doing: `0 READY`, `1 GOTOSET`, `2 GOTOSTATE`, `3 GOZERO`,
-`4 GOPOS`, `5 GONEG`, `6 SPNOTSET` (MINOR, same as `SP_NOT_REACHED`) and `7 STATENOTSET` (MAJOR,
-same as `ST_NOT_REACHED`). Commands are not sent again: this IOC has no `RETRY`.
+`4 GOPOS`, `5 GONEG`, `6 SPNOTSET` (MINOR, from `SP_NOT_REACHED`) and `7 STATENOTSET` (MAJOR,
+from `ST_NOT_REACHED`). Commands are not sent again: this IOC has no `RETRY`.
 
 ### UNIMAG configuration
 
