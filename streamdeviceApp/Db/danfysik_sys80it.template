@@ -72,7 +72,8 @@ record(longin,   "$(DEVICE):QUICK_STATUS_RAW")   { field(SCAN, "Passive") }
 record(waveform, "$(DEVICE):QUICK_COMBINED_RAW") { field(SCAN, "Passive") }
 
 ################################################################################
-# S1 status: 24 characters (System 8000, manual P80303MH p.33)
+# S1 status: 24 characters (System 8000, ITA 4256 / INFN Frascati,
+# DOC P80303NL p.47-48; scans in docs/ita/)
 ################################################################################
 # STATUS_BITS reads it with "%40B.!", so char n (1 = first) lands in
 # bit 24-n. "!" = condition present.
@@ -82,8 +83,9 @@ record(waveform, "$(DEVICE):QUICK_COMBINED_RAW") { field(SCAN, "Passive") }
 #   2   22  Polarity normal
 #   3   21  Polarity reversed
 #   4   20  Regulation transformer <> 0
-#  5-7 19-17 (illegible in the scanned manual - display/status, not
-#            interlocks; set on every unit at rest)
+#   5   19  "!" (no function listed; set on every unit seen)
+#   6   18  "!" (no function listed; set on every unit seen)
+#   7   17  front panel units: "!" = %, "." = amps and volts
 #   8   16  Spare interlock
 #   9   15  One transistor fault
 #  10   14  Sum interlock
@@ -100,7 +102,7 @@ record(waveform, "$(DEVICE):QUICK_COMBINED_RAW") { field(SCAN, "Passive") }
 #  21    3  Magnet waterflow failure
 #  22    2  Magnet overtemperature
 #  23    1  MPS not ready
-#  24    0  (not listed)
+#  24    0  "." (no function listed)
 #
 # Interlock mask = bits 2..16 = 0x1FFFC = 131068.
 
@@ -108,6 +110,12 @@ record(calc, "$(DEVICE):MAIN_PWR_ON")
 {
     field(CALC, "!((A>>23)&1)")
 }
+
+record(stringin, "$(DEVICE):MODEL") { field(VAL, "sys80it") }
+
+# No "neutral" combination in the 24-char S1 (chars 2/3 are polarity
+# normal/reversed status only).
+record(calc, "$(DEVICE):POL_NEUTRAL") { field(CALC, "0") }
 
 # INTERLOCKED and STATE_DECODE (the interlock mask) live in
 # danfysik_unimag.template, so their sys80it version is in
