@@ -534,6 +534,22 @@ record(mbbiDirect, "$(DEVICE):STATUS_BITS")
     field(SCAN, "$(SCAN_FAST=1 second)")
 }
 
+# Controller model, for the OPIs (danfysik_sys80it.template sets "sys80it")
+record(stringin, "$(DEVICE):MODEL")
+{
+    field(DESC, "Controller model")
+    field(VAL,  "sys8800")
+}
+
+# Polarity neutral: chars 10 and 11 (bits 21, 20) both "!" - an interlock
+# (manual p.54, Note 1). Counted in INTERLOCKED / STATE_DECODE.
+record(calc, "$(DEVICE):POL_NEUTRAL")
+{
+    field(DESC, "Polarity neutral interlock")
+    field(INPA, "$(DEVICE):STATUS_BITS CP")
+    field(CALC, "(A&3145728)=3145728")
+}
+
 # Individual status bits (derived from the real status bitmask)
 record(calc, "$(DEVICE):MAIN_PWR_ON")
 {

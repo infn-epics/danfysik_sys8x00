@@ -60,7 +60,9 @@ record(calcout, "$(DEVICE):STATE_DECODE")
     # counted as faults before (which never reacted to anything real).
     field(INPE, "$(DEVICE):CONNECTED CP")        # 0 = communication error
     field(INPF, "$(DEVICE):FAULT_IGNORE CP")     # masked (ignored) S1 bits
-    field(CALC, "E=0?5:(C?9:(D?8:((B&2143354372&~F)>0?3:(A?1:2))))")
+    # Chars 10 and 11 (bits 21, 20) both "!" = polarity neutral, an interlock
+    # (manual p.54, Note 1); either one alone is just the polarity.
+    field(CALC, "E=0?5:(C?9:(D?8:((B&2143354372&~F)>0||(B&3145728&~F)=3145728?3:(A?1:2))))")
     field(OUT,  "$(DEVICE):STATE_BASE PP")
     field(SCAN, "1 second")
 }
@@ -206,7 +208,7 @@ record(calc, "$(DEVICE):INTERLOCKED")
     # STATE_DECODE above.
     field(INPA, "$(DEVICE):STATUS_BITS CP")
     field(INPB, "$(DEVICE):FAULT_IGNORE CP")
-    field(CALC, "(A&2143354372&~B)>0")
+    field(CALC, "(A&2143354372&~B)>0||(A&3145728&~B)=3145728")
 }
 
 # S1 interlock bits to ignore (bit n = STATUS_BITS bit n, see the table in
